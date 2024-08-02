@@ -1,0 +1,2497 @@
+// ~->[DNET-1]->~
+
+// File created by GmytrasiewiczP_2 at UIC using Netica 5.21 on Oct 20, 2023 at 10:24:10 UTC.
+
+bnet Credit_Scoring {
+AutoCompile = TRUE;
+autoupdate = TRUE;
+whenchanged = 1697797448;
+
+visual V1 {
+	defdispform = BELIEFBARS;
+	nodelabeling = TITLE;
+	NodeMaxNumEntries = 50;
+	nodefont = font {shape= "Arial"; size= 9;};
+	linkfont = font {shape= "Arial"; size= 9;};
+	windowposn = (156, 156, 973, 518);
+	scrollposn = (269, 354);
+	resolution = 72;
+	magnification = 0.707107;
+	drawingbounds = (2982, 1546);
+	showpagebreaks = FALSE;
+	usegrid = TRUE;
+	gridspace = (6, 6);
+	NodeSet Node {BuiltIn = 1; Color = 0x00e1e1e1;};
+	NodeSet Nature {BuiltIn = 1; Color = 0x00f8eed2;};
+	NodeSet Deterministic {BuiltIn = 1; Color = 0x00d3caa6;};
+	NodeSet Finding {BuiltIn = 1; Color = 0x00c8c8c8;};
+	NodeSet Constant {BuiltIn = 1; Color = 0x00ffffff;};
+	NodeSet ConstantValue {BuiltIn = 1; Color = 0x00ffffb4;};
+	NodeSet Utility {BuiltIn = 1; Color = 0x00ffbdbd;};
+	NodeSet Decision {BuiltIn = 1; Color = 0x00dee8ff;};
+	NodeSet Documentation {BuiltIn = 1; Color = 0x00f0fafa;};
+	NodeSet Title {BuiltIn = 1; Color = 0x00ffffff;};
+	PrinterSetting A {
+		margins = (1270, 1270, 1270, 1270);
+		};
+	};
+
+node TP {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (high, medium, low);
+	statetitles = ("On Time", "Occasionally Late", "Frequently Late");
+	parents = ();
+	probs = 
+		// On Time      Occasionally Lat Frequently Late 
+		  (0.7,         0.2,         0.1);
+	title = "Timely Payments";
+	whenchanged = 1697559765;
+	belief = (0.7, 0.2, 0.1);
+	visual V1 {
+		center = (1332, 246);
+		height = 6;
+		};
+	};
+
+node D {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (none, few, many);
+	statetitles = ("No Delinquencies", "Minor (30 days)", "Major (90+ days)");
+	parents = ();
+	probs = 
+		// No Delinquencies Minor (30 days) Major (90+ days) 
+		  (0.8,         0.15,        0.05);
+	title = "Delinquencies";
+	comment = "lawsuits, bankruptcies, liens, etc...";
+	whenchanged = 1697559800;
+	belief = (0.8, 0.15, 0.05);
+	visual V1 {
+		center = (1182, 96);
+		height = 5;
+		};
+	};
+
+node MLP {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (none, few, many);
+	statetitles = ("No Misses", "1-2 Last Year", "3+ Last Year");
+	parents = ();
+	probs = 
+		// No Misses    1-2 Last Year 3+ Last Year 
+		  (0.65,        0.25,        0.1);
+	title = "Missing/Late Payments";
+	whenchanged = 1697564202;
+	belief = (0.65, 0.25, 0.1);
+	visual V1 {
+		center = (1008, 294);
+		height = 4;
+		};
+	};
+
+node PH {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (high, medium, low);
+	statetitles = ("Good History", "Average History", "Poor History");
+	parents = (D, TP, MLP);
+	probs = 
+		// Good History Average History Poor History  // D                TP               MLP           
+		  (0.95,        0.05,        0,            // No Delinquencies On Time          No Misses     
+		   0.8,         0.2,         0,            // No Delinquencies On Time          1-2 Last Year 
+		   0.6,         0.3,         0.1,          // No Delinquencies On Time          3+ Last Year  
+		   0.85,        0.14,        0.01,         // No Delinquencies Occasionally Lat No Misses     
+		   0.6,         0.35,        0.05,         // No Delinquencies Occasionally Lat 1-2 Last Year 
+		   0.4,         0.4,         0.2,          // No Delinquencies Occasionally Lat 3+ Last Year  
+		   0.4,         0.5,         0.1,          // No Delinquencies Frequently Late  No Misses     
+		   0.2,         0.5,         0.3,          // No Delinquencies Frequently Late  1-2 Last Year 
+		   0.1,         0.4,         0.5,          // No Delinquencies Frequently Late  3+ Last Year  
+		   0.7,         0.28,        0.02,         // Minor (30 days)  On Time          No Misses     
+		   0.5,         0.4,         0.1,          // Minor (30 days)  On Time          1-2 Last Year 
+		   0.3,         0.4,         0.3,          // Minor (30 days)  On Time          3+ Last Year  
+		   0.5,         0.45,        0.05,         // Minor (30 days)  Occasionally Lat No Misses     
+		   0.3,         0.5,         0.2,          // Minor (30 days)  Occasionally Lat 1-2 Last Year 
+		   0.2,         0.4,         0.4,          // Minor (30 days)  Occasionally Lat 3+ Last Year  
+		   0.2,         0.6,         0.2,          // Minor (30 days)  Frequently Late  No Misses     
+		   0.1,         0.5,         0.4,          // Minor (30 days)  Frequently Late  1-2 Last Year 
+		   0.05,        0.35,        0.6,          // Minor (30 days)  Frequently Late  3+ Last Year  
+		   0.2,         0.6,         0.2,          // Major (90+ days) On Time          No Misses     
+		   0.1,         0.5,         0.4,          // Major (90+ days) On Time          1-2 Last Year 
+		   0.05,        0.4,         0.55,         // Major (90+ days) On Time          3+ Last Year  
+		   0.1,         0.6,         0.3,          // Major (90+ days) Occasionally Lat No Misses     
+		   0.05,        0.45,        0.5,          // Major (90+ days) Occasionally Lat 1-2 Last Year 
+		   0.02,        0.35,        0.63,         // Major (90+ days) Occasionally Lat 3+ Last Year  
+		   0.05,        0.4,         0.55,         // Major (90+ days) Frequently Late  No Misses     
+		   0.02,        0.3,         0.68,         // Major (90+ days) Frequently Late  1-2 Last Year 
+		   0.01,        0.2,         0.79);        // Major (90+ days) Frequently Late  3+ Last Year  ;
+	numcases = 1;
+	title = "Payment History";
+	whenchanged = 1697701252;
+	belief = (0.7214375, 0.21952, 0.05904251);
+	visual V1 {
+		center = (1236, 402);
+		height = 3;
+		link 2 {
+			path = ((1312, 280), (1259, 365));
+			};
+		link 3 {
+			path = ((1077, 328), (1157, 365));
+			};
+		};
+	};
+
+node CB {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (low, medium, high);
+	statetitles = ("Low Balance", "Moderate Balance", "High Balance");
+	parents = ();
+	probs = 
+		// Low Balance  Moderate Balance High Balance 
+		  (0.6,         0.3,         0.1);
+	title = "Card Balances";
+	whenchanged = 1697792218;
+	belief = (0.6, 0.3, 0.1);
+	visual V1 {
+		center = (378, 1014);
+		height = 15;
+		};
+	};
+
+node TD {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (low, medium, high);
+	statetitles = ("Low Debt", "Moderate Debt", "High Debt");
+	parents = ();
+	probs = 
+		// Low Debt     Moderate Debt High Debt   
+		  (0.5,         0.4,         0.1);
+	title = "Total Debt";
+	whenchanged = 1697561103;
+	belief = (0.5, 0.4, 0.1);
+	visual V1 {
+		center = (642, 900);
+		height = 14;
+		};
+	};
+
+node LB {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (low, medium, high);
+	statetitles = ("Low Balance", "Medium Balance", "High Balance");
+	parents = ();
+	probs = 
+		// Low Balance  Medium Balance High Balance 
+		  (0.5,         0.4,         0.1);
+	title = "Loan Balances";
+	whenchanged = 1697785488;
+	belief = (0.5, 0.4, 0.1);
+	visual V1 {
+		center = (174, 900);
+		height = 13;
+		};
+	};
+
+node B {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (low, medium, high);
+	statetitles = ("Small Balances", "Moderate Balances", "Large Balances");
+	parents = (CB, TD, LB);
+	probs = 
+		// Small Balances Moderate Balance Large Balances  // CB               TD            LB             
+		  (1,           0,           0,            // Low Balance      Low Debt      Low Balance    
+		   0.8,         0.2,         0,            // Low Balance      Low Debt      Medium Balance 
+		   0,           0.2,         0.8,          // Low Balance      Low Debt      High Balance   
+		   0.8,         0.2,         0,            // Low Balance      Moderate Debt Low Balance    
+		   0.5,         0.5,         0,            // Low Balance      Moderate Debt Medium Balance 
+		   0,           0.4,         0.6,          // Low Balance      Moderate Debt High Balance   
+		   0,           0.2,         0.8,          // Low Balance      High Debt     Low Balance    
+		   0,           0.4,         0.6,          // Low Balance      High Debt     Medium Balance 
+		   0,           0,           1,            // Low Balance      High Debt     High Balance   
+		   0.8,         0.2,         0,            // Moderate Balance Low Debt      Low Balance    
+		   0.5,         0.5,         0,            // Moderate Balance Low Debt      Medium Balance 
+		   0,           0.4,         0.6,          // Moderate Balance Low Debt      High Balance   
+		   0.5,         0.5,         0,            // Moderate Balance Moderate Debt Low Balance    
+		   0.4,         0.6,         0,            // Moderate Balance Moderate Debt Medium Balance 
+		   0,           0.5,         0.5,          // Moderate Balance Moderate Debt High Balance   
+		   0,           0.4,         0.6,          // Moderate Balance High Debt     Low Balance    
+		   0,           0.5,         0.5,          // Moderate Balance High Debt     Medium Balance 
+		   0,           0.2,         0.8,          // Moderate Balance High Debt     High Balance   
+		   0,           0.2,         0.8,          // High Balance     Low Debt      Low Balance    
+		   0,           0.4,         0.6,          // High Balance     Low Debt      Medium Balance 
+		   0,           0,           1,            // High Balance     Low Debt      High Balance   
+		   0,           0.4,         0.6,          // High Balance     Moderate Debt Low Balance    
+		   0,           0.5,         0.5,          // High Balance     Moderate Debt Medium Balance 
+		   0,           0,           1,            // High Balance     Moderate Debt High Balance   
+		   0,           0,           1,            // High Balance     High Debt     Low Balance    
+		   0,           0,           1,            // High Balance     High Debt     Medium Balance 
+		   0,           0,           1);           // High Balance     High Debt     High Balance   ;
+	title = "Balances";
+	whenchanged = 1697561534;
+	belief = (0.5292, 0.2846, 0.1862);
+	visual V1 {
+		center = (336, 774);
+		height = 12;
+		link 3 {
+			path = ((222, 863), (294, 808));
+			};
+		};
+	};
+
+node AWB {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (few, some, many);
+	statetitles = ("Few Accounts", "Some Accounts", "Many Accounts");
+	parents = ();
+	probs = 
+		// Few Accounts Some Accounts Many Accounts 
+		  (0.6,         0.3,         0.1);
+	title = "Account with Balances";
+	whenchanged = 1697701205;
+	belief = (0.6, 0.3, 0.1);
+	visual V1 {
+		center = (246, 636);
+		height = 11;
+		};
+	};
+
+node CU {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (low, medium, high);
+	statetitles = ("0-30% Used", "31-70% Used", "71-100% Used");
+	parents = ();
+	probs = 
+		// 0-30% Used   31-70% Used  71-100% Used 
+		  (0.6,         0.3,         0.1);
+	title = "Credit Utilization";
+	whenchanged = 1697692925;
+	belief = (0.6, 0.3, 0.1);
+	visual V1 {
+		center = (648, 726);
+		height = 16;
+		};
+	};
+
+node AO {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (Low, Medium, High);
+	statetitles = ("Low Amounts Owed", "Moderate Amounts Owed", "High Amounts Owed");
+	parents = (B, AWB, CU);
+	probs = 
+		// Low Amounts Owed Moderate Amounts High Amounts Owe  // B                AWB           CU           
+		  (0.98,        0.02,        0,            // Small Balances   Few Accounts  0-30% Used   
+		   0.95,        0.05,        0,            // Small Balances   Few Accounts  31-70% Used  
+		   0.9,         0.1,         0,            // Small Balances   Few Accounts  71-100% Used 
+		   0.96,        0.04,        0,            // Small Balances   Some Accounts 0-30% Used   
+		   0.9,         0.1,         0,            // Small Balances   Some Accounts 31-70% Used  
+		   0.85,        0.15,        0,            // Small Balances   Some Accounts 71-100% Used 
+		   0.92,        0.08,        0,            // Small Balances   Many Accounts 0-30% Used   
+		   0.85,        0.15,        0,            // Small Balances   Many Accounts 31-70% Used  
+		   0.8,         0.2,         0,            // Small Balances   Many Accounts 71-100% Used 
+		   0.4,         0.55,        0.05,         // Moderate Balance Few Accounts  0-30% Used   
+		   0.2,         0.7,         0.1,          // Moderate Balance Few Accounts  31-70% Used  
+		   0.1,         0.6,         0.3,          // Moderate Balance Few Accounts  71-100% Used 
+		   0.3,         0.6,         0.1,          // Moderate Balance Some Accounts 0-30% Used   
+		   0.15,        0.65,        0.2,          // Moderate Balance Some Accounts 31-70% Used  
+		   0.1,         0.5,         0.4,          // Moderate Balance Some Accounts 71-100% Used 
+		   0.2,         0.65,        0.15,         // Moderate Balance Many Accounts 0-30% Used   
+		   0.1,         0.55,        0.35,         // Moderate Balance Many Accounts 31-70% Used  
+		   0.05,        0.4,         0.55,         // Moderate Balance Many Accounts 71-100% Used 
+		   0.05,        0.7,         0.25,         // Large Balances   Few Accounts  0-30% Used   
+		   0.03,        0.6,         0.37,         // Large Balances   Few Accounts  31-70% Used  
+		   0.02,        0.4,         0.58,         // Large Balances   Few Accounts  71-100% Used 
+		   0.04,        0.65,        0.31,         // Large Balances   Some Accounts 0-30% Used   
+		   0.02,        0.55,        0.43,         // Large Balances   Some Accounts 31-70% Used  
+		   0.01,        0.3,         0.69,         // Large Balances   Some Accounts 71-100% Used 
+		   0.03,        0.55,        0.42,         // Large Balances   Many Accounts 0-30% Used   
+		   0.01,        0.4,         0.59,         // Large Balances   Many Accounts 31-70% Used  
+		   0,           0.25,        0.75);        // Large Balances   Many Accounts 71-100% Used ;
+	numcases = 
+		                 // B                AWB           CU           
+		  (1,            // Small Balances   Few Accounts  0-30% Used   
+		   1,            // Small Balances   Few Accounts  31-70% Used  
+		   1,            // Small Balances   Few Accounts  71-100% Used 
+		   1,            // Small Balances   Some Accounts 0-30% Used   
+		   1,            // Small Balances   Some Accounts 31-70% Used  
+		   1,            // Small Balances   Some Accounts 71-100% Used 
+		   1,            // Small Balances   Many Accounts 0-30% Used   
+		   1,            // Small Balances   Many Accounts 31-70% Used  
+		   1,            // Small Balances   Many Accounts 71-100% Used 
+		   1,            // Moderate Balance Few Accounts  0-30% Used   
+		   1,            // Moderate Balance Few Accounts  31-70% Used  
+		   1,            // Moderate Balance Few Accounts  71-100% Used 
+		   1,            // Moderate Balance Some Accounts 0-30% Used   
+		   1,            // Moderate Balance Some Accounts 31-70% Used  
+		   1,            // Moderate Balance Some Accounts 71-100% Used 
+		   0,            // Moderate Balance Many Accounts 0-30% Used   
+		   0,            // Moderate Balance Many Accounts 31-70% Used  
+		   0,            // Moderate Balance Many Accounts 71-100% Used 
+		   0,            // Large Balances   Few Accounts  0-30% Used   
+		   0,            // Large Balances   Few Accounts  31-70% Used  
+		   0,            // Large Balances   Few Accounts  71-100% Used 
+		   0,            // Large Balances   Some Accounts 0-30% Used   
+		   0,            // Large Balances   Some Accounts 31-70% Used  
+		   0,            // Large Balances   Some Accounts 71-100% Used 
+		   0,            // Large Balances   Many Accounts 0-30% Used   
+		   0,            // Large Balances   Many Accounts 31-70% Used  
+		   0);           // Large Balances   Many Accounts 71-100% Used ;
+	title = "Amounts Owed";
+	whenchanged = 1697791546;
+	belief = (0.5846317, 0.3127507, 0.1026176);
+	visual V1 {
+		center = (726, 600);
+		height = 17;
+		};
+	};
+
+node TSLA {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (recent, medium, none);
+	statetitles = ("Last 6 Months", "6-12 Months", "1+ Year (Dormant)");
+	parents = ();
+	probs = 
+		// Last 6 Months 6-12 Months 1+ Year (Dormant 
+		  (0.5,         0.25,        0.25);
+	title = "(Time Since) Last Activity";
+	whenchanged = 1697791605;
+	belief = (0.5, 0.25, 0.25);
+	visual V1 {
+		center = (1704, 390);
+		height = 20;
+		};
+	};
+
+node AA {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (low, medium, high);
+	statetitles = ("0-2 Years", "3-7 Years", "8+ Years");
+	parents = ();
+	probs = 
+		// 0-2 Years    3-7 Years    8+ Years     
+		  (0.3,         0.4,         0.3);
+	title = "Average Age";
+	whenchanged = 1697791630;
+	belief = (0.3, 0.4, 0.3);
+	visual V1 {
+		center = (1866, 540);
+		height = 19;
+		};
+	};
+
+node CHL {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (new, moderate, established);
+	statetitles = ("New History", "Moderate History", "Established History");
+	parents = (TSLA, AA);
+	probs = 
+		// New History  Moderate History Established Hist  // TSLA             AA        
+		  (0.85,        0.15,        0,            // Last 6 Months    0-2 Years 
+		   0.7,         0.25,        0.05,         // Last 6 Months    3-7 Years 
+		   0.4,         0.35,        0.25,         // Last 6 Months    8+ Years  
+		   0.75,        0.23,        0.02,         // 6-12 Months      0-2 Years 
+		   0.5,         0.4,         0.1,          // 6-12 Months      3-7 Years 
+		   0.2,         0.4,         0.4,          // 6-12 Months      8+ Years  
+		   0.65,        0.33,        0.02,         // 1+ Year (Dormant 0-2 Years 
+		   0.3,         0.5,         0.2,          // 1+ Year (Dormant 3-7 Years 
+		   0.05,        0.35,        0.6);         // 1+ Year (Dormant 8+ Years  ;
+	numcases = 1;
+	title = "Credit History Length";
+	whenchanged = 1697791581;
+	belief = (0.53125, 0.31325, 0.1555);
+	visual V1 {
+		center = (1620, 558);
+		height = 18;
+		};
+	};
+
+node NA {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (none, few, many);
+	statetitles = ("No New Accounts", "1-2 New Accounts", "3+ New Accounts");
+	parents = ();
+	probs = 
+		// No New Accounts 1-2 New Accounts 3+ New Accounts 
+		  (0.5,         0.4,         0.1);
+	title = "New Accounts";
+	whenchanged = 1697791536;
+	belief = (0.5, 0.4, 0.1);
+	visual V1 {
+		center = (198, 360);
+		height = 2;
+		};
+	};
+
+node HI {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (none, few, many);
+	statetitles = ("No Inquiries", "1-2 Inquiries", "3+ Inquiries");
+	parents = ();
+	probs = 
+		// No Inquiries 1-2 Inquiries 3+ Inquiries 
+		  (0.4,         0.5,         0.1);
+	title = "Hard Inquiries";
+	whenchanged = 1697560757;
+	belief = (0.4, 0.5, 0.1);
+	visual V1 {
+		center = (450, 324);
+		height = 1;
+		};
+	};
+
+node NC {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (low, medium, high);
+	statetitles = ("Low Activity", "Moderate Activity", "High Activity");
+	parents = (NA, HI);
+	probs = 
+		// Low Activity Moderate Activit High Activity  // NA               HI            
+		  (0.94,        0.05,        0.01,         // No New Accounts  No Inquiries  
+		   0.8,         0.18,        0.02,         // No New Accounts  1-2 Inquiries 
+		   0.6,         0.25,        0.15,         // No New Accounts  3+ Inquiries  
+		   0.8,         0.18,        0.02,         // 1-2 New Accounts No Inquiries  
+		   0.7,         0.27,        0.03,         // 1-2 New Accounts 1-2 Inquiries 
+		   0.5,         0.3,         0.2,          // 1-2 New Accounts 3+ Inquiries  
+		   0.4,         0.35,        0.25,         // 3+ New Accounts  No Inquiries  
+		   0.3,         0.3,         0.4,          // 3+ New Accounts  1-2 Inquiries 
+		   0.01,        0.05,        0.94);        // 3+ New Accounts  3+ Inquiries  ;
+	numcases = 1;
+	title = "New Credit";
+	whenchanged = 1697701402;
+	belief = (0.7371, 0.1918, 0.0711);
+	visual V1 {
+		center = (450, 486);
+		height = 21;
+		};
+	};
+
+node IA {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (none, few, many);
+	statetitles = ("No Installments", "Few Installments", "Many Installments");
+	parents = ();
+	probs = 
+		// No Installments Few Installments Many Installment 
+		  (0.2,         0.5,         0.3);
+	title = "Installment Accounts";
+	whenchanged = 1697564551;
+	belief = (0.2, 0.5, 0.3);
+	visual V1 {
+		center = (624, 90);
+		height = 7;
+		};
+	};
+
+node RA {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (none, few, many);
+	statetitles = ("No Revolving", "Few Revolving", "Many Revolving");
+	parents = ();
+	probs = 
+		// No Revolving Few Revolving Many Revolving 
+		  (0.1,         0.6,         0.3);
+	title = "Revolving Accounts";
+	whenchanged = 1697564548;
+	belief = (0.1, 0.6, 0.3);
+	visual V1 {
+		center = (876, 90);
+		height = 8;
+		};
+	};
+
+node CM {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (single, mixed, diverse);
+	statetitles = ("Single Type", "Mixed Types", "Diverse Types");
+	parents = (IA, RA);
+	probs = 
+		// Single Type  Mixed Types  Diverse Types  // IA               RA             
+		  (1,           0,           0,            // No Installments  No Revolving   
+		   0.9,         0.1,         0,            // No Installments  Few Revolving  
+		   0.7,         0.2,         0.1,          // No Installments  Many Revolving 
+		   0.9,         0.1,         0,            // Few Installments No Revolving   
+		   0.3,         0.6,         0.1,          // Few Installments Few Revolving  
+		   0.1,         0.4,         0.5,          // Few Installments Many Revolving 
+		   0.7,         0.2,         0.1,          // Many Installment No Revolving   
+		   0.1,         0.4,         0.5,          // Many Installment Few Revolving  
+		   0,           0.2,         0.8);         // Many Installment Many Revolving ;
+	numcases = 1;
+	title = "Credit Mix";
+	whenchanged = 1697701445;
+	belief = (0.359, 0.365, 0.276);
+	visual V1 {
+		center = (744, 354);
+		height = 9;
+		};
+	};
+
+node CS {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (Poor, Fair, Good, Excellent);
+	parents = (PH, AO, CHL, NC, CM);
+	probs = 
+		// Poor         Fair         Good         Excellent     // PH              AO               CHL              NC               CM            
+		  (0.05,        0.35,        0.5,         0.1,          // Good History    Low Amounts Owed New History      Low Activity     Single Type   
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Low Amounts Owed New History      Low Activity     Mixed Types   
+		   0,           0.05,        0.25,        0.7,          // Good History    Low Amounts Owed New History      Low Activity     Diverse Types 
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Low Amounts Owed New History      Moderate Activit Single Type   
+		   0,           0.05,        0.25,        0.7,          // Good History    Low Amounts Owed New History      Moderate Activit Mixed Types   
+		   0,           0.05,        0.25,        0.7,          // Good History    Low Amounts Owed New History      Moderate Activit Diverse Types 
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Low Amounts Owed New History      High Activity    Single Type   
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Low Amounts Owed New History      High Activity    Mixed Types   
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Low Amounts Owed New History      High Activity    Diverse Types 
+		   0,           0.05,        0.25,        0.7,          // Good History    Low Amounts Owed Moderate History Low Activity     Single Type   
+		   0,           0.05,        0.25,        0.7,          // Good History    Low Amounts Owed Moderate History Low Activity     Mixed Types   
+		   0,           0.05,        0.25,        0.7,          // Good History    Low Amounts Owed Moderate History Low Activity     Diverse Types 
+		   0,           0.05,        0.25,        0.7,          // Good History    Low Amounts Owed Moderate History Moderate Activit Single Type   
+		   0,           0.05,        0.25,        0.7,          // Good History    Low Amounts Owed Moderate History Moderate Activit Mixed Types   
+		   0,           0.05,        0.25,        0.7,          // Good History    Low Amounts Owed Moderate History Moderate Activit Diverse Types 
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Low Amounts Owed Moderate History High Activity    Single Type   
+		   0,           0.05,        0.25,        0.7,          // Good History    Low Amounts Owed Moderate History High Activity    Mixed Types   
+		   0,           0.05,        0.25,        0.7,          // Good History    Low Amounts Owed Moderate History High Activity    Diverse Types 
+		   0,           0.05,        0.25,        0.7,          // Good History    Low Amounts Owed Established Hist Low Activity     Single Type   
+		   0,           0.05,        0.25,        0.7,          // Good History    Low Amounts Owed Established Hist Low Activity     Mixed Types   
+		   0,           0.05,        0.25,        0.7,          // Good History    Low Amounts Owed Established Hist Low Activity     Diverse Types 
+		   0,           0.05,        0.25,        0.7,          // Good History    Low Amounts Owed Established Hist Moderate Activit Single Type   
+		   0,           0.05,        0.25,        0.7,          // Good History    Low Amounts Owed Established Hist Moderate Activit Mixed Types   
+		   0,           0.05,        0.25,        0.7,          // Good History    Low Amounts Owed Established Hist Moderate Activit Diverse Types 
+		   0,           0.05,        0.25,        0.7,          // Good History    Low Amounts Owed Established Hist High Activity    Single Type   
+		   0,           0.05,        0.25,        0.7,          // Good History    Low Amounts Owed Established Hist High Activity    Mixed Types   
+		   0,           0.05,        0.25,        0.7,          // Good History    Low Amounts Owed Established Hist High Activity    Diverse Types 
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Moderate Amounts New History      Low Activity     Single Type   
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Moderate Amounts New History      Low Activity     Mixed Types   
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Moderate Amounts New History      Low Activity     Diverse Types 
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Moderate Amounts New History      Moderate Activit Single Type   
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Moderate Amounts New History      Moderate Activit Mixed Types   
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Moderate Amounts New History      Moderate Activit Diverse Types 
+		   0.25,        0.55,        0.2,         0,            // Good History    Moderate Amounts New History      High Activity    Single Type   
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Moderate Amounts New History      High Activity    Mixed Types   
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Moderate Amounts New History      High Activity    Diverse Types 
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Moderate Amounts Moderate History Low Activity     Single Type   
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Moderate Amounts Moderate History Low Activity     Mixed Types   
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Moderate Amounts Moderate History Low Activity     Diverse Types 
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Moderate Amounts Moderate History Moderate Activit Single Type   
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Moderate Amounts Moderate History Moderate Activit Mixed Types   
+		   0,           0.05,        0.25,        0.7,          // Good History    Moderate Amounts Moderate History Moderate Activit Diverse Types 
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Moderate Amounts Moderate History High Activity    Single Type   
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Moderate Amounts Moderate History High Activity    Mixed Types   
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Moderate Amounts Moderate History High Activity    Diverse Types 
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Moderate Amounts Established Hist Low Activity     Single Type   
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Moderate Amounts Established Hist Low Activity     Mixed Types   
+		   0,           0.05,        0.25,        0.7,          // Good History    Moderate Amounts Established Hist Low Activity     Diverse Types 
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Moderate Amounts Established Hist Moderate Activit Single Type   
+		   0,           0.05,        0.25,        0.7,          // Good History    Moderate Amounts Established Hist Moderate Activit Mixed Types   
+		   0,           0.05,        0.25,        0.7,          // Good History    Moderate Amounts Established Hist Moderate Activit Diverse Types 
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Moderate Amounts Established Hist High Activity    Single Type   
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Moderate Amounts Established Hist High Activity    Mixed Types   
+		   0.05,        0.35,        0.5,         0.1,          // Good History    Moderate Amounts Established Hist High Activity    Diverse Types 
+		   0.6,         0.35,        0.05,        0,            // Good History    High Amounts Owe New History      Low Activity     Single Type   
+		   0.6,         0.35,        0.05,        0,            // Good History    High Amounts Owe New History      Low Activity     Mixed Types   
+		   0.6,         0.35,        0.05,        0,            // Good History    High Amounts Owe New History      Low Activity     Diverse Types 
+		   0.6,         0.35,        0.05,        0,            // Good History    High Amounts Owe New History      Moderate Activit Single Type   
+		   0.6,         0.35,        0.05,        0,            // Good History    High Amounts Owe New History      Moderate Activit Mixed Types   
+		   0.3,         0.55,        0.15,        0,            // Good History    High Amounts Owe New History      Moderate Activit Diverse Types 
+		   0.6,         0.35,        0.05,        0,            // Good History    High Amounts Owe New History      High Activity    Single Type   
+		   0.6,         0.35,        0.05,        0,            // Good History    High Amounts Owe New History      High Activity    Mixed Types   
+		   0.6,         0.35,        0.05,        0,            // Good History    High Amounts Owe New History      High Activity    Diverse Types 
+		   0.6,         0.35,        0.05,        0,            // Good History    High Amounts Owe Moderate History Low Activity     Single Type   
+		   0.3,         0.55,        0.15,        0,            // Good History    High Amounts Owe Moderate History Low Activity     Mixed Types   
+		   0.3,         0.55,        0.15,        0,            // Good History    High Amounts Owe Moderate History Low Activity     Diverse Types 
+		   0.3,         0.55,        0.15,        0,            // Good History    High Amounts Owe Moderate History Moderate Activit Single Type   
+		   0.3,         0.55,        0.15,        0,            // Good History    High Amounts Owe Moderate History Moderate Activit Mixed Types   
+		   0.3,         0.55,        0.15,        0,            // Good History    High Amounts Owe Moderate History Moderate Activit Diverse Types 
+		   0.6,         0.35,        0.05,        0,            // Good History    High Amounts Owe Moderate History High Activity    Single Type   
+		   0.6,         0.35,        0.05,        0,            // Good History    High Amounts Owe Moderate History High Activity    Mixed Types   
+		   0.3,         0.55,        0.15,        0,            // Good History    High Amounts Owe Moderate History High Activity    Diverse Types 
+		   0.3,         0.55,        0.15,        0,            // Good History    High Amounts Owe Established Hist Low Activity     Single Type   
+		   0.3,         0.55,        0.15,        0,            // Good History    High Amounts Owe Established Hist Low Activity     Mixed Types   
+		   0.3,         0.55,        0.15,        0,            // Good History    High Amounts Owe Established Hist Low Activity     Diverse Types 
+		   0.3,         0.55,        0.15,        0,            // Good History    High Amounts Owe Established Hist Moderate Activit Single Type   
+		   0.3,         0.55,        0.15,        0,            // Good History    High Amounts Owe Established Hist Moderate Activit Mixed Types   
+		   0.3,         0.55,        0.15,        0,            // Good History    High Amounts Owe Established Hist Moderate Activit Diverse Types 
+		   0.6,         0.35,        0.05,        0,            // Good History    High Amounts Owe Established Hist High Activity    Single Type   
+		   0.3,         0.55,        0.15,        0,            // Good History    High Amounts Owe Established Hist High Activity    Mixed Types   
+		   0.3,         0.55,        0.15,        0,            // Good History    High Amounts Owe Established Hist High Activity    Diverse Types 
+		   0.05,        0.35,        0.5,         0.1,          // Average History Low Amounts Owed New History      Low Activity     Single Type   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Low Amounts Owed New History      Low Activity     Mixed Types   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Low Amounts Owed New History      Low Activity     Diverse Types 
+		   0.05,        0.35,        0.5,         0.1,          // Average History Low Amounts Owed New History      Moderate Activit Single Type   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Low Amounts Owed New History      Moderate Activit Mixed Types   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Low Amounts Owed New History      Moderate Activit Diverse Types 
+		   0.25,        0.55,        0.2,         0,            // Average History Low Amounts Owed New History      High Activity    Single Type   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Low Amounts Owed New History      High Activity    Mixed Types   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Low Amounts Owed New History      High Activity    Diverse Types 
+		   0.05,        0.35,        0.5,         0.1,          // Average History Low Amounts Owed Moderate History Low Activity     Single Type   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Low Amounts Owed Moderate History Low Activity     Mixed Types   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Low Amounts Owed Moderate History Low Activity     Diverse Types 
+		   0.05,        0.35,        0.5,         0.1,          // Average History Low Amounts Owed Moderate History Moderate Activit Single Type   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Low Amounts Owed Moderate History Moderate Activit Mixed Types   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Low Amounts Owed Moderate History Moderate Activit Diverse Types 
+		   0.05,        0.35,        0.5,         0.1,          // Average History Low Amounts Owed Moderate History High Activity    Single Type   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Low Amounts Owed Moderate History High Activity    Mixed Types   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Low Amounts Owed Moderate History High Activity    Diverse Types 
+		   0.05,        0.35,        0.5,         0.1,          // Average History Low Amounts Owed Established Hist Low Activity     Single Type   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Low Amounts Owed Established Hist Low Activity     Mixed Types   
+		   0,           0.05,        0.25,        0.7,          // Average History Low Amounts Owed Established Hist Low Activity     Diverse Types 
+		   0.05,        0.35,        0.5,         0.1,          // Average History Low Amounts Owed Established Hist Moderate Activit Single Type   
+		   0,           0.05,        0.25,        0.7,          // Average History Low Amounts Owed Established Hist Moderate Activit Mixed Types   
+		   0,           0.05,        0.25,        0.7,          // Average History Low Amounts Owed Established Hist Moderate Activit Diverse Types 
+		   0.05,        0.35,        0.5,         0.1,          // Average History Low Amounts Owed Established Hist High Activity    Single Type   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Low Amounts Owed Established Hist High Activity    Mixed Types   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Low Amounts Owed Established Hist High Activity    Diverse Types 
+		   0.25,        0.55,        0.2,         0,            // Average History Moderate Amounts New History      Low Activity     Single Type   
+		   0.25,        0.55,        0.2,         0,            // Average History Moderate Amounts New History      Low Activity     Mixed Types   
+		   0.25,        0.55,        0.2,         0,            // Average History Moderate Amounts New History      Low Activity     Diverse Types 
+		   0.25,        0.55,        0.2,         0,            // Average History Moderate Amounts New History      Moderate Activit Single Type   
+		   0.25,        0.55,        0.2,         0,            // Average History Moderate Amounts New History      Moderate Activit Mixed Types   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Moderate Amounts New History      Moderate Activit Diverse Types 
+		   0.25,        0.55,        0.2,         0,            // Average History Moderate Amounts New History      High Activity    Single Type   
+		   0.25,        0.55,        0.2,         0,            // Average History Moderate Amounts New History      High Activity    Mixed Types   
+		   0.25,        0.55,        0.2,         0,            // Average History Moderate Amounts New History      High Activity    Diverse Types 
+		   0.25,        0.55,        0.2,         0,            // Average History Moderate Amounts Moderate History Low Activity     Single Type   
+		   0.25,        0.55,        0.2,         0,            // Average History Moderate Amounts Moderate History Low Activity     Mixed Types   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Moderate Amounts Moderate History Low Activity     Diverse Types 
+		   0.25,        0.55,        0.2,         0,            // Average History Moderate Amounts Moderate History Moderate Activit Single Type   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Moderate Amounts Moderate History Moderate Activit Mixed Types   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Moderate Amounts Moderate History Moderate Activit Diverse Types 
+		   0.25,        0.55,        0.2,         0,            // Average History Moderate Amounts Moderate History High Activity    Single Type   
+		   0.25,        0.55,        0.2,         0,            // Average History Moderate Amounts Moderate History High Activity    Mixed Types   
+		   0.25,        0.55,        0.2,         0,            // Average History Moderate Amounts Moderate History High Activity    Diverse Types 
+		   0.05,        0.35,        0.5,         0.1,          // Average History Moderate Amounts Established Hist Low Activity     Single Type   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Moderate Amounts Established Hist Low Activity     Mixed Types   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Moderate Amounts Established Hist Low Activity     Diverse Types 
+		   0.05,        0.35,        0.5,         0.1,          // Average History Moderate Amounts Established Hist Moderate Activit Single Type   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Moderate Amounts Established Hist Moderate Activit Mixed Types   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Moderate Amounts Established Hist Moderate Activit Diverse Types 
+		   0.25,        0.55,        0.2,         0,            // Average History Moderate Amounts Established Hist High Activity    Single Type   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Moderate Amounts Established Hist High Activity    Mixed Types   
+		   0.05,        0.35,        0.5,         0.1,          // Average History Moderate Amounts Established Hist High Activity    Diverse Types 
+		   0.85,        0.15,        0,           0,            // Average History High Amounts Owe New History      Low Activity     Single Type   
+		   0.6,         0.35,        0.05,        0,            // Average History High Amounts Owe New History      Low Activity     Mixed Types   
+		   0.6,         0.35,        0.05,        0,            // Average History High Amounts Owe New History      Low Activity     Diverse Types 
+		   0.6,         0.35,        0.05,        0,            // Average History High Amounts Owe New History      Moderate Activit Single Type   
+		   0.6,         0.35,        0.05,        0,            // Average History High Amounts Owe New History      Moderate Activit Mixed Types   
+		   0.6,         0.35,        0.05,        0,            // Average History High Amounts Owe New History      Moderate Activit Diverse Types 
+		   0.85,        0.15,        0,           0,            // Average History High Amounts Owe New History      High Activity    Single Type   
+		   0.85,        0.15,        0,           0,            // Average History High Amounts Owe New History      High Activity    Mixed Types   
+		   0.6,         0.35,        0.05,        0,            // Average History High Amounts Owe New History      High Activity    Diverse Types 
+		   0.6,         0.35,        0.05,        0,            // Average History High Amounts Owe Moderate History Low Activity     Single Type   
+		   0.6,         0.35,        0.05,        0,            // Average History High Amounts Owe Moderate History Low Activity     Mixed Types   
+		   0.6,         0.35,        0.05,        0,            // Average History High Amounts Owe Moderate History Low Activity     Diverse Types 
+		   0.6,         0.35,        0.05,        0,            // Average History High Amounts Owe Moderate History Moderate Activit Single Type   
+		   0.6,         0.35,        0.05,        0,            // Average History High Amounts Owe Moderate History Moderate Activit Mixed Types   
+		   0.6,         0.35,        0.05,        0,            // Average History High Amounts Owe Moderate History Moderate Activit Diverse Types 
+		   0.6,         0.35,        0.05,        0,            // Average History High Amounts Owe Moderate History High Activity    Single Type   
+		   0.6,         0.35,        0.05,        0,            // Average History High Amounts Owe Moderate History High Activity    Mixed Types   
+		   0.6,         0.35,        0.05,        0,            // Average History High Amounts Owe Moderate History High Activity    Diverse Types 
+		   0.6,         0.35,        0.05,        0,            // Average History High Amounts Owe Established Hist Low Activity     Single Type   
+		   0.6,         0.35,        0.05,        0,            // Average History High Amounts Owe Established Hist Low Activity     Mixed Types   
+		   0.6,         0.35,        0.05,        0,            // Average History High Amounts Owe Established Hist Low Activity     Diverse Types 
+		   0.6,         0.35,        0.05,        0,            // Average History High Amounts Owe Established Hist Moderate Activit Single Type   
+		   0.6,         0.35,        0.05,        0,            // Average History High Amounts Owe Established Hist Moderate Activit Mixed Types   
+		   0.3,         0.55,        0.15,        0,            // Average History High Amounts Owe Established Hist Moderate Activit Diverse Types 
+		   0.6,         0.35,        0.05,        0,            // Average History High Amounts Owe Established Hist High Activity    Single Type   
+		   0.6,         0.35,        0.05,        0,            // Average History High Amounts Owe Established Hist High Activity    Mixed Types   
+		   0.6,         0.35,        0.05,        0,            // Average History High Amounts Owe Established Hist High Activity    Diverse Types 
+		   0.7,         0.25,        0.05,        0,            // Poor History    Low Amounts Owed New History      Low Activity     Single Type   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Low Amounts Owed New History      Low Activity     Mixed Types   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Low Amounts Owed New History      Low Activity     Diverse Types 
+		   0.7,         0.25,        0.05,        0,            // Poor History    Low Amounts Owed New History      Moderate Activit Single Type   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Low Amounts Owed New History      Moderate Activit Mixed Types   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Low Amounts Owed New History      Moderate Activit Diverse Types 
+		   0.7,         0.25,        0.05,        0,            // Poor History    Low Amounts Owed New History      High Activity    Single Type   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Low Amounts Owed New History      High Activity    Mixed Types   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Low Amounts Owed New History      High Activity    Diverse Types 
+		   0.7,         0.25,        0.05,        0,            // Poor History    Low Amounts Owed Moderate History Low Activity     Single Type   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Low Amounts Owed Moderate History Low Activity     Mixed Types   
+		   0.4,         0.5,         0.1,         0,            // Poor History    Low Amounts Owed Moderate History Low Activity     Diverse Types 
+		   0.7,         0.25,        0.05,        0,            // Poor History    Low Amounts Owed Moderate History Moderate Activit Single Type   
+		   0.4,         0.5,         0.1,         0,            // Poor History    Low Amounts Owed Moderate History Moderate Activit Mixed Types   
+		   0.4,         0.5,         0.1,         0,            // Poor History    Low Amounts Owed Moderate History Moderate Activit Diverse Types 
+		   0.7,         0.25,        0.05,        0,            // Poor History    Low Amounts Owed Moderate History High Activity    Single Type   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Low Amounts Owed Moderate History High Activity    Mixed Types   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Low Amounts Owed Moderate History High Activity    Diverse Types 
+		   0.7,         0.25,        0.05,        0,            // Poor History    Low Amounts Owed Established Hist Low Activity     Single Type   
+		   0.4,         0.5,         0.1,         0,            // Poor History    Low Amounts Owed Established Hist Low Activity     Mixed Types   
+		   0.4,         0.5,         0.1,         0,            // Poor History    Low Amounts Owed Established Hist Low Activity     Diverse Types 
+		   0.4,         0.5,         0.1,         0,            // Poor History    Low Amounts Owed Established Hist Moderate Activit Single Type   
+		   0.4,         0.5,         0.1,         0,            // Poor History    Low Amounts Owed Established Hist Moderate Activit Mixed Types   
+		   0.4,         0.5,         0.1,         0,            // Poor History    Low Amounts Owed Established Hist Moderate Activit Diverse Types 
+		   0.7,         0.25,        0.05,        0,            // Poor History    Low Amounts Owed Established Hist High Activity    Single Type   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Low Amounts Owed Established Hist High Activity    Mixed Types   
+		   0.4,         0.5,         0.1,         0,            // Poor History    Low Amounts Owed Established Hist High Activity    Diverse Types 
+		   0.9,         0.1,         0,           0,            // Poor History    Moderate Amounts New History      Low Activity     Single Type   
+		   0.9,         0.1,         0,           0,            // Poor History    Moderate Amounts New History      Low Activity     Mixed Types   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Moderate Amounts New History      Low Activity     Diverse Types 
+		   0.9,         0.1,         0,           0,            // Poor History    Moderate Amounts New History      Moderate Activit Single Type   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Moderate Amounts New History      Moderate Activit Mixed Types   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Moderate Amounts New History      Moderate Activit Diverse Types 
+		   0.9,         0.1,         0,           0,            // Poor History    Moderate Amounts New History      High Activity    Single Type   
+		   0.9,         0.1,         0,           0,            // Poor History    Moderate Amounts New History      High Activity    Mixed Types   
+		   0.9,         0.1,         0,           0,            // Poor History    Moderate Amounts New History      High Activity    Diverse Types 
+		   0.7,         0.25,        0.05,        0,            // Poor History    Moderate Amounts Moderate History Low Activity     Single Type   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Moderate Amounts Moderate History Low Activity     Mixed Types   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Moderate Amounts Moderate History Low Activity     Diverse Types 
+		   0.7,         0.25,        0.05,        0,            // Poor History    Moderate Amounts Moderate History Moderate Activit Single Type   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Moderate Amounts Moderate History Moderate Activit Mixed Types   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Moderate Amounts Moderate History Moderate Activit Diverse Types 
+		   0.9,         0.1,         0,           0,            // Poor History    Moderate Amounts Moderate History High Activity    Single Type   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Moderate Amounts Moderate History High Activity    Mixed Types   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Moderate Amounts Moderate History High Activity    Diverse Types 
+		   0.7,         0.25,        0.05,        0,            // Poor History    Moderate Amounts Established Hist Low Activity     Single Type   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Moderate Amounts Established Hist Low Activity     Mixed Types   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Moderate Amounts Established Hist Low Activity     Diverse Types 
+		   0.7,         0.25,        0.05,        0,            // Poor History    Moderate Amounts Established Hist Moderate Activit Single Type   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Moderate Amounts Established Hist Moderate Activit Mixed Types   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Moderate Amounts Established Hist Moderate Activit Diverse Types 
+		   0.7,         0.25,        0.05,        0,            // Poor History    Moderate Amounts Established Hist High Activity    Single Type   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Moderate Amounts Established Hist High Activity    Mixed Types   
+		   0.7,         0.25,        0.05,        0,            // Poor History    Moderate Amounts Established Hist High Activity    Diverse Types 
+		   0.9,         0.1,         0,           0,            // Poor History    High Amounts Owe New History      Low Activity     Single Type   
+		   0.9,         0.1,         0,           0,            // Poor History    High Amounts Owe New History      Low Activity     Mixed Types   
+		   0.9,         0.1,         0,           0,            // Poor History    High Amounts Owe New History      Low Activity     Diverse Types 
+		   0.9,         0.1,         0,           0,            // Poor History    High Amounts Owe New History      Moderate Activit Single Type   
+		   0.9,         0.1,         0,           0,            // Poor History    High Amounts Owe New History      Moderate Activit Mixed Types   
+		   0.9,         0.1,         0,           0,            // Poor History    High Amounts Owe New History      Moderate Activit Diverse Types 
+		   0.9,         0.1,         0,           0,            // Poor History    High Amounts Owe New History      High Activity    Single Type   
+		   0.9,         0.1,         0,           0,            // Poor History    High Amounts Owe New History      High Activity    Mixed Types   
+		   0.9,         0.1,         0,           0,            // Poor History    High Amounts Owe New History      High Activity    Diverse Types 
+		   0.9,         0.1,         0,           0,            // Poor History    High Amounts Owe Moderate History Low Activity     Single Type   
+		   0.9,         0.1,         0,           0,            // Poor History    High Amounts Owe Moderate History Low Activity     Mixed Types   
+		   0.9,         0.1,         0,           0,            // Poor History    High Amounts Owe Moderate History Low Activity     Diverse Types 
+		   0.9,         0.1,         0,           0,            // Poor History    High Amounts Owe Moderate History Moderate Activit Single Type   
+		   0.9,         0.1,         0,           0,            // Poor History    High Amounts Owe Moderate History Moderate Activit Mixed Types   
+		   0.7,         0.25,        0.05,        0,            // Poor History    High Amounts Owe Moderate History Moderate Activit Diverse Types 
+		   0.9,         0.1,         0,           0,            // Poor History    High Amounts Owe Moderate History High Activity    Single Type   
+		   0.9,         0.1,         0,           0,            // Poor History    High Amounts Owe Moderate History High Activity    Mixed Types   
+		   0.9,         0.1,         0,           0,            // Poor History    High Amounts Owe Moderate History High Activity    Diverse Types 
+		   0.9,         0.1,         0,           0,            // Poor History    High Amounts Owe Established Hist Low Activity     Single Type   
+		   0.9,         0.1,         0,           0,            // Poor History    High Amounts Owe Established Hist Low Activity     Mixed Types   
+		   0.7,         0.25,        0.05,        0,            // Poor History    High Amounts Owe Established Hist Low Activity     Diverse Types 
+		   0.9,         0.1,         0,           0,            // Poor History    High Amounts Owe Established Hist Moderate Activit Single Type   
+		   0.7,         0.25,        0.05,        0,            // Poor History    High Amounts Owe Established Hist Moderate Activit Mixed Types   
+		   0.7,         0.25,        0.05,        0,            // Poor History    High Amounts Owe Established Hist Moderate Activit Diverse Types 
+		   0.9,         0.1,         0,           0,            // Poor History    High Amounts Owe Established Hist High Activity    Single Type   
+		   0.9,         0.1,         0,           0,            // Poor History    High Amounts Owe Established Hist High Activity    Mixed Types   
+		   0.9,         0.1,         0,           0);           // Poor History    High Amounts Owe Established Hist High Activity    Diverse Types ;
+	numcases = 
+		                 // PH              AO               CHL              NC               CM            
+		  (1,            // Good History    Low Amounts Owed New History      Low Activity     Single Type   
+		   0,            // Good History    Low Amounts Owed New History      Low Activity     Mixed Types   
+		   0,            // Good History    Low Amounts Owed New History      Low Activity     Diverse Types 
+		   0,            // Good History    Low Amounts Owed New History      Moderate Activit Single Type   
+		   0,            // Good History    Low Amounts Owed New History      Moderate Activit Mixed Types   
+		   0,            // Good History    Low Amounts Owed New History      Moderate Activit Diverse Types 
+		   0,            // Good History    Low Amounts Owed New History      High Activity    Single Type   
+		   0,            // Good History    Low Amounts Owed New History      High Activity    Mixed Types   
+		   0,            // Good History    Low Amounts Owed New History      High Activity    Diverse Types 
+		   0,            // Good History    Low Amounts Owed Moderate History Low Activity     Single Type   
+		   0,            // Good History    Low Amounts Owed Moderate History Low Activity     Mixed Types   
+		   0,            // Good History    Low Amounts Owed Moderate History Low Activity     Diverse Types 
+		   0,            // Good History    Low Amounts Owed Moderate History Moderate Activit Single Type   
+		   0,            // Good History    Low Amounts Owed Moderate History Moderate Activit Mixed Types   
+		   0,            // Good History    Low Amounts Owed Moderate History Moderate Activit Diverse Types 
+		   0,            // Good History    Low Amounts Owed Moderate History High Activity    Single Type   
+		   0,            // Good History    Low Amounts Owed Moderate History High Activity    Mixed Types   
+		   0,            // Good History    Low Amounts Owed Moderate History High Activity    Diverse Types 
+		   0,            // Good History    Low Amounts Owed Established Hist Low Activity     Single Type   
+		   0,            // Good History    Low Amounts Owed Established Hist Low Activity     Mixed Types   
+		   0,            // Good History    Low Amounts Owed Established Hist Low Activity     Diverse Types 
+		   0,            // Good History    Low Amounts Owed Established Hist Moderate Activit Single Type   
+		   0,            // Good History    Low Amounts Owed Established Hist Moderate Activit Mixed Types   
+		   0,            // Good History    Low Amounts Owed Established Hist Moderate Activit Diverse Types 
+		   0,            // Good History    Low Amounts Owed Established Hist High Activity    Single Type   
+		   0,            // Good History    Low Amounts Owed Established Hist High Activity    Mixed Types   
+		   0,            // Good History    Low Amounts Owed Established Hist High Activity    Diverse Types 
+		   0,            // Good History    Moderate Amounts New History      Low Activity     Single Type   
+		   0,            // Good History    Moderate Amounts New History      Low Activity     Mixed Types   
+		   0,            // Good History    Moderate Amounts New History      Low Activity     Diverse Types 
+		   0,            // Good History    Moderate Amounts New History      Moderate Activit Single Type   
+		   0,            // Good History    Moderate Amounts New History      Moderate Activit Mixed Types   
+		   0,            // Good History    Moderate Amounts New History      Moderate Activit Diverse Types 
+		   0,            // Good History    Moderate Amounts New History      High Activity    Single Type   
+		   0,            // Good History    Moderate Amounts New History      High Activity    Mixed Types   
+		   0,            // Good History    Moderate Amounts New History      High Activity    Diverse Types 
+		   0,            // Good History    Moderate Amounts Moderate History Low Activity     Single Type   
+		   0,            // Good History    Moderate Amounts Moderate History Low Activity     Mixed Types   
+		   0,            // Good History    Moderate Amounts Moderate History Low Activity     Diverse Types 
+		   0,            // Good History    Moderate Amounts Moderate History Moderate Activit Single Type   
+		   0,            // Good History    Moderate Amounts Moderate History Moderate Activit Mixed Types   
+		   0,            // Good History    Moderate Amounts Moderate History Moderate Activit Diverse Types 
+		   0,            // Good History    Moderate Amounts Moderate History High Activity    Single Type   
+		   0,            // Good History    Moderate Amounts Moderate History High Activity    Mixed Types   
+		   0,            // Good History    Moderate Amounts Moderate History High Activity    Diverse Types 
+		   0,            // Good History    Moderate Amounts Established Hist Low Activity     Single Type   
+		   0,            // Good History    Moderate Amounts Established Hist Low Activity     Mixed Types   
+		   0,            // Good History    Moderate Amounts Established Hist Low Activity     Diverse Types 
+		   0,            // Good History    Moderate Amounts Established Hist Moderate Activit Single Type   
+		   0,            // Good History    Moderate Amounts Established Hist Moderate Activit Mixed Types   
+		   0,            // Good History    Moderate Amounts Established Hist Moderate Activit Diverse Types 
+		   0,            // Good History    Moderate Amounts Established Hist High Activity    Single Type   
+		   0,            // Good History    Moderate Amounts Established Hist High Activity    Mixed Types   
+		   0,            // Good History    Moderate Amounts Established Hist High Activity    Diverse Types 
+		   0,            // Good History    High Amounts Owe New History      Low Activity     Single Type   
+		   0,            // Good History    High Amounts Owe New History      Low Activity     Mixed Types   
+		   0,            // Good History    High Amounts Owe New History      Low Activity     Diverse Types 
+		   0,            // Good History    High Amounts Owe New History      Moderate Activit Single Type   
+		   0,            // Good History    High Amounts Owe New History      Moderate Activit Mixed Types   
+		   0,            // Good History    High Amounts Owe New History      Moderate Activit Diverse Types 
+		   0,            // Good History    High Amounts Owe New History      High Activity    Single Type   
+		   0,            // Good History    High Amounts Owe New History      High Activity    Mixed Types   
+		   0,            // Good History    High Amounts Owe New History      High Activity    Diverse Types 
+		   0,            // Good History    High Amounts Owe Moderate History Low Activity     Single Type   
+		   0,            // Good History    High Amounts Owe Moderate History Low Activity     Mixed Types   
+		   0,            // Good History    High Amounts Owe Moderate History Low Activity     Diverse Types 
+		   0,            // Good History    High Amounts Owe Moderate History Moderate Activit Single Type   
+		   0,            // Good History    High Amounts Owe Moderate History Moderate Activit Mixed Types   
+		   0,            // Good History    High Amounts Owe Moderate History Moderate Activit Diverse Types 
+		   0,            // Good History    High Amounts Owe Moderate History High Activity    Single Type   
+		   0,            // Good History    High Amounts Owe Moderate History High Activity    Mixed Types   
+		   0,            // Good History    High Amounts Owe Moderate History High Activity    Diverse Types 
+		   0,            // Good History    High Amounts Owe Established Hist Low Activity     Single Type   
+		   0,            // Good History    High Amounts Owe Established Hist Low Activity     Mixed Types   
+		   0,            // Good History    High Amounts Owe Established Hist Low Activity     Diverse Types 
+		   0,            // Good History    High Amounts Owe Established Hist Moderate Activit Single Type   
+		   0,            // Good History    High Amounts Owe Established Hist Moderate Activit Mixed Types   
+		   0,            // Good History    High Amounts Owe Established Hist Moderate Activit Diverse Types 
+		   0,            // Good History    High Amounts Owe Established Hist High Activity    Single Type   
+		   0,            // Good History    High Amounts Owe Established Hist High Activity    Mixed Types   
+		   0,            // Good History    High Amounts Owe Established Hist High Activity    Diverse Types 
+		   0,            // Average History Low Amounts Owed New History      Low Activity     Single Type   
+		   0,            // Average History Low Amounts Owed New History      Low Activity     Mixed Types   
+		   0,            // Average History Low Amounts Owed New History      Low Activity     Diverse Types 
+		   0,            // Average History Low Amounts Owed New History      Moderate Activit Single Type   
+		   0,            // Average History Low Amounts Owed New History      Moderate Activit Mixed Types   
+		   0,            // Average History Low Amounts Owed New History      Moderate Activit Diverse Types 
+		   0,            // Average History Low Amounts Owed New History      High Activity    Single Type   
+		   0,            // Average History Low Amounts Owed New History      High Activity    Mixed Types   
+		   0,            // Average History Low Amounts Owed New History      High Activity    Diverse Types 
+		   0,            // Average History Low Amounts Owed Moderate History Low Activity     Single Type   
+		   0,            // Average History Low Amounts Owed Moderate History Low Activity     Mixed Types   
+		   0,            // Average History Low Amounts Owed Moderate History Low Activity     Diverse Types 
+		   0,            // Average History Low Amounts Owed Moderate History Moderate Activit Single Type   
+		   0,            // Average History Low Amounts Owed Moderate History Moderate Activit Mixed Types   
+		   0,            // Average History Low Amounts Owed Moderate History Moderate Activit Diverse Types 
+		   0,            // Average History Low Amounts Owed Moderate History High Activity    Single Type   
+		   0,            // Average History Low Amounts Owed Moderate History High Activity    Mixed Types   
+		   0,            // Average History Low Amounts Owed Moderate History High Activity    Diverse Types 
+		   0,            // Average History Low Amounts Owed Established Hist Low Activity     Single Type   
+		   0,            // Average History Low Amounts Owed Established Hist Low Activity     Mixed Types   
+		   0,            // Average History Low Amounts Owed Established Hist Low Activity     Diverse Types 
+		   0,            // Average History Low Amounts Owed Established Hist Moderate Activit Single Type   
+		   0,            // Average History Low Amounts Owed Established Hist Moderate Activit Mixed Types   
+		   0,            // Average History Low Amounts Owed Established Hist Moderate Activit Diverse Types 
+		   0,            // Average History Low Amounts Owed Established Hist High Activity    Single Type   
+		   0,            // Average History Low Amounts Owed Established Hist High Activity    Mixed Types   
+		   0,            // Average History Low Amounts Owed Established Hist High Activity    Diverse Types 
+		   0,            // Average History Moderate Amounts New History      Low Activity     Single Type   
+		   0,            // Average History Moderate Amounts New History      Low Activity     Mixed Types   
+		   0,            // Average History Moderate Amounts New History      Low Activity     Diverse Types 
+		   0,            // Average History Moderate Amounts New History      Moderate Activit Single Type   
+		   0,            // Average History Moderate Amounts New History      Moderate Activit Mixed Types   
+		   0,            // Average History Moderate Amounts New History      Moderate Activit Diverse Types 
+		   0,            // Average History Moderate Amounts New History      High Activity    Single Type   
+		   0,            // Average History Moderate Amounts New History      High Activity    Mixed Types   
+		   0,            // Average History Moderate Amounts New History      High Activity    Diverse Types 
+		   0,            // Average History Moderate Amounts Moderate History Low Activity     Single Type   
+		   0,            // Average History Moderate Amounts Moderate History Low Activity     Mixed Types   
+		   0,            // Average History Moderate Amounts Moderate History Low Activity     Diverse Types 
+		   0,            // Average History Moderate Amounts Moderate History Moderate Activit Single Type   
+		   0,            // Average History Moderate Amounts Moderate History Moderate Activit Mixed Types   
+		   0,            // Average History Moderate Amounts Moderate History Moderate Activit Diverse Types 
+		   0,            // Average History Moderate Amounts Moderate History High Activity    Single Type   
+		   0,            // Average History Moderate Amounts Moderate History High Activity    Mixed Types   
+		   0,            // Average History Moderate Amounts Moderate History High Activity    Diverse Types 
+		   0,            // Average History Moderate Amounts Established Hist Low Activity     Single Type   
+		   0,            // Average History Moderate Amounts Established Hist Low Activity     Mixed Types   
+		   0,            // Average History Moderate Amounts Established Hist Low Activity     Diverse Types 
+		   0,            // Average History Moderate Amounts Established Hist Moderate Activit Single Type   
+		   0,            // Average History Moderate Amounts Established Hist Moderate Activit Mixed Types   
+		   0,            // Average History Moderate Amounts Established Hist Moderate Activit Diverse Types 
+		   0,            // Average History Moderate Amounts Established Hist High Activity    Single Type   
+		   0,            // Average History Moderate Amounts Established Hist High Activity    Mixed Types   
+		   0,            // Average History Moderate Amounts Established Hist High Activity    Diverse Types 
+		   0,            // Average History High Amounts Owe New History      Low Activity     Single Type   
+		   0,            // Average History High Amounts Owe New History      Low Activity     Mixed Types   
+		   0,            // Average History High Amounts Owe New History      Low Activity     Diverse Types 
+		   0,            // Average History High Amounts Owe New History      Moderate Activit Single Type   
+		   0,            // Average History High Amounts Owe New History      Moderate Activit Mixed Types   
+		   0,            // Average History High Amounts Owe New History      Moderate Activit Diverse Types 
+		   0,            // Average History High Amounts Owe New History      High Activity    Single Type   
+		   0,            // Average History High Amounts Owe New History      High Activity    Mixed Types   
+		   0,            // Average History High Amounts Owe New History      High Activity    Diverse Types 
+		   0,            // Average History High Amounts Owe Moderate History Low Activity     Single Type   
+		   0,            // Average History High Amounts Owe Moderate History Low Activity     Mixed Types   
+		   0,            // Average History High Amounts Owe Moderate History Low Activity     Diverse Types 
+		   0,            // Average History High Amounts Owe Moderate History Moderate Activit Single Type   
+		   0,            // Average History High Amounts Owe Moderate History Moderate Activit Mixed Types   
+		   0,            // Average History High Amounts Owe Moderate History Moderate Activit Diverse Types 
+		   0,            // Average History High Amounts Owe Moderate History High Activity    Single Type   
+		   0,            // Average History High Amounts Owe Moderate History High Activity    Mixed Types   
+		   0,            // Average History High Amounts Owe Moderate History High Activity    Diverse Types 
+		   0,            // Average History High Amounts Owe Established Hist Low Activity     Single Type   
+		   0,            // Average History High Amounts Owe Established Hist Low Activity     Mixed Types   
+		   0,            // Average History High Amounts Owe Established Hist Low Activity     Diverse Types 
+		   0,            // Average History High Amounts Owe Established Hist Moderate Activit Single Type   
+		   0,            // Average History High Amounts Owe Established Hist Moderate Activit Mixed Types   
+		   0,            // Average History High Amounts Owe Established Hist Moderate Activit Diverse Types 
+		   0,            // Average History High Amounts Owe Established Hist High Activity    Single Type   
+		   0,            // Average History High Amounts Owe Established Hist High Activity    Mixed Types   
+		   0,            // Average History High Amounts Owe Established Hist High Activity    Diverse Types 
+		   0,            // Poor History    Low Amounts Owed New History      Low Activity     Single Type   
+		   0,            // Poor History    Low Amounts Owed New History      Low Activity     Mixed Types   
+		   0,            // Poor History    Low Amounts Owed New History      Low Activity     Diverse Types 
+		   0,            // Poor History    Low Amounts Owed New History      Moderate Activit Single Type   
+		   0,            // Poor History    Low Amounts Owed New History      Moderate Activit Mixed Types   
+		   0,            // Poor History    Low Amounts Owed New History      Moderate Activit Diverse Types 
+		   0,            // Poor History    Low Amounts Owed New History      High Activity    Single Type   
+		   0,            // Poor History    Low Amounts Owed New History      High Activity    Mixed Types   
+		   0,            // Poor History    Low Amounts Owed New History      High Activity    Diverse Types 
+		   0,            // Poor History    Low Amounts Owed Moderate History Low Activity     Single Type   
+		   0,            // Poor History    Low Amounts Owed Moderate History Low Activity     Mixed Types   
+		   0,            // Poor History    Low Amounts Owed Moderate History Low Activity     Diverse Types 
+		   0,            // Poor History    Low Amounts Owed Moderate History Moderate Activit Single Type   
+		   0,            // Poor History    Low Amounts Owed Moderate History Moderate Activit Mixed Types   
+		   0,            // Poor History    Low Amounts Owed Moderate History Moderate Activit Diverse Types 
+		   0,            // Poor History    Low Amounts Owed Moderate History High Activity    Single Type   
+		   0,            // Poor History    Low Amounts Owed Moderate History High Activity    Mixed Types   
+		   0,            // Poor History    Low Amounts Owed Moderate History High Activity    Diverse Types 
+		   0,            // Poor History    Low Amounts Owed Established Hist Low Activity     Single Type   
+		   0,            // Poor History    Low Amounts Owed Established Hist Low Activity     Mixed Types   
+		   0,            // Poor History    Low Amounts Owed Established Hist Low Activity     Diverse Types 
+		   0,            // Poor History    Low Amounts Owed Established Hist Moderate Activit Single Type   
+		   0,            // Poor History    Low Amounts Owed Established Hist Moderate Activit Mixed Types   
+		   0,            // Poor History    Low Amounts Owed Established Hist Moderate Activit Diverse Types 
+		   0,            // Poor History    Low Amounts Owed Established Hist High Activity    Single Type   
+		   0,            // Poor History    Low Amounts Owed Established Hist High Activity    Mixed Types   
+		   0,            // Poor History    Low Amounts Owed Established Hist High Activity    Diverse Types 
+		   0,            // Poor History    Moderate Amounts New History      Low Activity     Single Type   
+		   0,            // Poor History    Moderate Amounts New History      Low Activity     Mixed Types   
+		   0,            // Poor History    Moderate Amounts New History      Low Activity     Diverse Types 
+		   0,            // Poor History    Moderate Amounts New History      Moderate Activit Single Type   
+		   0,            // Poor History    Moderate Amounts New History      Moderate Activit Mixed Types   
+		   0,            // Poor History    Moderate Amounts New History      Moderate Activit Diverse Types 
+		   0,            // Poor History    Moderate Amounts New History      High Activity    Single Type   
+		   0,            // Poor History    Moderate Amounts New History      High Activity    Mixed Types   
+		   0,            // Poor History    Moderate Amounts New History      High Activity    Diverse Types 
+		   0,            // Poor History    Moderate Amounts Moderate History Low Activity     Single Type   
+		   0,            // Poor History    Moderate Amounts Moderate History Low Activity     Mixed Types   
+		   0,            // Poor History    Moderate Amounts Moderate History Low Activity     Diverse Types 
+		   0,            // Poor History    Moderate Amounts Moderate History Moderate Activit Single Type   
+		   0,            // Poor History    Moderate Amounts Moderate History Moderate Activit Mixed Types   
+		   0,            // Poor History    Moderate Amounts Moderate History Moderate Activit Diverse Types 
+		   0,            // Poor History    Moderate Amounts Moderate History High Activity    Single Type   
+		   0,            // Poor History    Moderate Amounts Moderate History High Activity    Mixed Types   
+		   0,            // Poor History    Moderate Amounts Moderate History High Activity    Diverse Types 
+		   0,            // Poor History    Moderate Amounts Established Hist Low Activity     Single Type   
+		   0,            // Poor History    Moderate Amounts Established Hist Low Activity     Mixed Types   
+		   0,            // Poor History    Moderate Amounts Established Hist Low Activity     Diverse Types 
+		   0,            // Poor History    Moderate Amounts Established Hist Moderate Activit Single Type   
+		   0,            // Poor History    Moderate Amounts Established Hist Moderate Activit Mixed Types   
+		   0,            // Poor History    Moderate Amounts Established Hist Moderate Activit Diverse Types 
+		   0,            // Poor History    Moderate Amounts Established Hist High Activity    Single Type   
+		   0,            // Poor History    Moderate Amounts Established Hist High Activity    Mixed Types   
+		   0,            // Poor History    Moderate Amounts Established Hist High Activity    Diverse Types 
+		   0,            // Poor History    High Amounts Owe New History      Low Activity     Single Type   
+		   0,            // Poor History    High Amounts Owe New History      Low Activity     Mixed Types   
+		   0,            // Poor History    High Amounts Owe New History      Low Activity     Diverse Types 
+		   0,            // Poor History    High Amounts Owe New History      Moderate Activit Single Type   
+		   0,            // Poor History    High Amounts Owe New History      Moderate Activit Mixed Types   
+		   0,            // Poor History    High Amounts Owe New History      Moderate Activit Diverse Types 
+		   0,            // Poor History    High Amounts Owe New History      High Activity    Single Type   
+		   0,            // Poor History    High Amounts Owe New History      High Activity    Mixed Types   
+		   0,            // Poor History    High Amounts Owe New History      High Activity    Diverse Types 
+		   0,            // Poor History    High Amounts Owe Moderate History Low Activity     Single Type   
+		   0,            // Poor History    High Amounts Owe Moderate History Low Activity     Mixed Types   
+		   0,            // Poor History    High Amounts Owe Moderate History Low Activity     Diverse Types 
+		   0,            // Poor History    High Amounts Owe Moderate History Moderate Activit Single Type   
+		   0,            // Poor History    High Amounts Owe Moderate History Moderate Activit Mixed Types   
+		   0,            // Poor History    High Amounts Owe Moderate History Moderate Activit Diverse Types 
+		   0,            // Poor History    High Amounts Owe Moderate History High Activity    Single Type   
+		   0,            // Poor History    High Amounts Owe Moderate History High Activity    Mixed Types   
+		   0,            // Poor History    High Amounts Owe Moderate History High Activity    Diverse Types 
+		   0,            // Poor History    High Amounts Owe Established Hist Low Activity     Single Type   
+		   0,            // Poor History    High Amounts Owe Established Hist Low Activity     Mixed Types   
+		   0,            // Poor History    High Amounts Owe Established Hist Low Activity     Diverse Types 
+		   0,            // Poor History    High Amounts Owe Established Hist Moderate Activit Single Type   
+		   0,            // Poor History    High Amounts Owe Established Hist Moderate Activit Mixed Types   
+		   0,            // Poor History    High Amounts Owe Established Hist Moderate Activit Diverse Types 
+		   0,            // Poor History    High Amounts Owe Established Hist High Activity    Single Type   
+		   0,            // Poor History    High Amounts Owe Established Hist High Activity    Mixed Types   
+		   0);           // Poor History    High Amounts Owe Established Hist High Activity    Diverse Types ;
+	title = "Credit Score";
+	whenchanged = 1697795313;
+	belief = (0.1303099, 0.2732157, 0.3439408, 0.2525336);
+	visual V1 {
+		center = (1308, 552);
+		height = 10;
+		};
+	};
+
+node I {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (low, medium, high);
+	statetitles = ("Low Income", "Moderate Income", "High Income");
+	parents = ();
+	probs = 
+		// Low Income   Moderate Income High Income 
+		  (0.4,         0.45,        0.15);
+	title = "Income";
+	whenchanged = 1697795325;
+	belief = (0.4, 0.45, 0.15);
+	visual V1 {
+		center = (894, 834);
+		height = 23;
+		};
+	};
+
+node DTI {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (low, medium, high);
+	statetitles = ("<20% DTI", "20-35% DTI", ">35% DTI");
+	parents = ();
+	probs = 
+		// <20% DTI     20-35% DTI   >35% DTI     
+		  (0.6,         0.3,         0.1);
+	title = "Debt to Income Ratio";
+	whenchanged = 1697795307;
+	belief = (0.6, 0.3, 0.1);
+	visual V1 {
+		center = (990, 678);
+		height = 22;
+		};
+	};
+
+node A {
+	kind = DECISION;
+	discrete = TRUE;
+	chance = DETERMIN;
+	states = (Yes, No);
+	parents = (CS, I, DTI);
+	functable = 
+		                    // CS        I               DTI        
+		  (Yes,             // Poor      Low Income      <20% DTI   
+		   No,              // Poor      Low Income      20-35% DTI 
+		   No,              // Poor      Low Income      >35% DTI   
+		   Yes,             // Poor      Moderate Income <20% DTI   
+		   Yes,             // Poor      Moderate Income 20-35% DTI 
+		   No,              // Poor      Moderate Income >35% DTI   
+		   Yes,             // Poor      High Income     <20% DTI   
+		   Yes,             // Poor      High Income     20-35% DTI 
+		   No,              // Poor      High Income     >35% DTI   
+		   Yes,             // Fair      Low Income      <20% DTI   
+		   Yes,             // Fair      Low Income      20-35% DTI 
+		   Yes,             // Fair      Low Income      >35% DTI   
+		   Yes,             // Fair      Moderate Income <20% DTI   
+		   Yes,             // Fair      Moderate Income 20-35% DTI 
+		   Yes,             // Fair      Moderate Income >35% DTI   
+		   Yes,             // Fair      High Income     <20% DTI   
+		   Yes,             // Fair      High Income     20-35% DTI 
+		   Yes,             // Fair      High Income     >35% DTI   
+		   Yes,             // Good      Low Income      <20% DTI   
+		   Yes,             // Good      Low Income      20-35% DTI 
+		   Yes,             // Good      Low Income      >35% DTI   
+		   Yes,             // Good      Moderate Income <20% DTI   
+		   Yes,             // Good      Moderate Income 20-35% DTI 
+		   Yes,             // Good      Moderate Income >35% DTI   
+		   Yes,             // Good      High Income     <20% DTI   
+		   Yes,             // Good      High Income     20-35% DTI 
+		   Yes,             // Good      High Income     >35% DTI   
+		   Yes,             // Excellent Low Income      <20% DTI   
+		   Yes,             // Excellent Low Income      20-35% DTI 
+		   Yes,             // Excellent Low Income      >35% DTI   
+		   Yes,             // Excellent Moderate Income <20% DTI   
+		   Yes,             // Excellent Moderate Income 20-35% DTI 
+		   Yes,             // Excellent Moderate Income >35% DTI   
+		   Yes,             // Excellent High Income     <20% DTI   
+		   Yes,             // Excellent High Income     20-35% DTI 
+		   Yes);            // Excellent High Income     >35% DTI   ;
+	title = "Approve Loan?";
+	whenchanged = 1697797447;
+	belief = (1, 0);
+	visual V1 {
+		center = (1326, 684);
+		height = 30;
+		link 1 {
+			path = ((1313, 593), (1322, 655));
+			};
+		};
+	};
+
+node ER {
+	kind = UTILITY;
+	discrete = FALSE;
+	measure = RATIO;
+	chance = DETERMIN;
+	parents = (CS, DTI, I, A);
+	functable = 
+		                 // CS        DTI        I               A   
+		  (-63,          // Poor      <20% DTI   Low Income      Yes 
+		   0,            // Poor      <20% DTI   Low Income      No  
+		   -58,          // Poor      <20% DTI   Moderate Income Yes 
+		   0,            // Poor      <20% DTI   Moderate Income No  
+		   -53,          // Poor      <20% DTI   High Income     Yes 
+		   0,            // Poor      <20% DTI   High Income     No  
+		   -75,          // Poor      20-35% DTI Low Income      Yes 
+		   0,            // Poor      20-35% DTI Low Income      No  
+		   -70,          // Poor      20-35% DTI Moderate Income Yes 
+		   0,            // Poor      20-35% DTI Moderate Income No  
+		   -65,          // Poor      20-35% DTI High Income     Yes 
+		   0,            // Poor      20-35% DTI High Income     No  
+		   -91,          // Poor      >35% DTI   Low Income      Yes 
+		   0,            // Poor      >35% DTI   Low Income      No  
+		   -86,          // Poor      >35% DTI   Moderate Income Yes 
+		   0,            // Poor      >35% DTI   Moderate Income No  
+		   -81,          // Poor      >35% DTI   High Income     Yes 
+		   0,            // Poor      >35% DTI   High Income     No  
+		   -35,          // Fair      <20% DTI   Low Income      Yes 
+		   0,            // Fair      <20% DTI   Low Income      No  
+		   -30,          // Fair      <20% DTI   Moderate Income Yes 
+		   0,            // Fair      <20% DTI   Moderate Income No  
+		   -25,          // Fair      <20% DTI   High Income     Yes 
+		   0,            // Fair      <20% DTI   High Income     No  
+		   -47,          // Fair      20-35% DTI Low Income      Yes 
+		   0,            // Fair      20-35% DTI Low Income      No  
+		   -42,          // Fair      20-35% DTI Moderate Income Yes 
+		   0,            // Fair      20-35% DTI Moderate Income No  
+		   -37,          // Fair      20-35% DTI High Income     Yes 
+		   0,            // Fair      20-35% DTI High Income     No  
+		   -63,          // Fair      >35% DTI   Low Income      Yes 
+		   0,            // Fair      >35% DTI   Low Income      No  
+		   -58,          // Fair      >35% DTI   Moderate Income Yes 
+		   0,            // Fair      >35% DTI   Moderate Income No  
+		   -53,          // Fair      >35% DTI   High Income     Yes 
+		   0,            // Fair      >35% DTI   High Income     No  
+		   49,           // Good      <20% DTI   Low Income      Yes 
+		   0,            // Good      <20% DTI   Low Income      No  
+		   54,           // Good      <20% DTI   Moderate Income Yes 
+		   0,            // Good      <20% DTI   Moderate Income No  
+		   59,           // Good      <20% DTI   High Income     Yes 
+		   0,            // Good      <20% DTI   High Income     No  
+		   37,           // Good      20-35% DTI Low Income      Yes 
+		   0,            // Good      20-35% DTI Low Income      No  
+		   42,           // Good      20-35% DTI Moderate Income Yes 
+		   0,            // Good      20-35% DTI Moderate Income No  
+		   47,           // Good      20-35% DTI High Income     Yes 
+		   0,            // Good      20-35% DTI High Income     No  
+		   21,           // Good      >35% DTI   Low Income      Yes 
+		   0,            // Good      >35% DTI   Low Income      No  
+		   26,           // Good      >35% DTI   Moderate Income Yes 
+		   0,            // Good      >35% DTI   Moderate Income No  
+		   31,           // Good      >35% DTI   High Income     Yes 
+		   0,            // Good      >35% DTI   High Income     No  
+		   77,           // Excellent <20% DTI   Low Income      Yes 
+		   0,            // Excellent <20% DTI   Low Income      No  
+		   82,           // Excellent <20% DTI   Moderate Income Yes 
+		   0,            // Excellent <20% DTI   Moderate Income No  
+		   87,           // Excellent <20% DTI   High Income     Yes 
+		   0,            // Excellent <20% DTI   High Income     No  
+		   65,           // Excellent 20-35% DTI Low Income      Yes 
+		   0,            // Excellent 20-35% DTI Low Income      No  
+		   70,           // Excellent 20-35% DTI Moderate Income Yes 
+		   0,            // Excellent 20-35% DTI Moderate Income No  
+		   75,           // Excellent 20-35% DTI High Income     Yes 
+		   0,            // Excellent 20-35% DTI High Income     No  
+		   49,           // Excellent >35% DTI   Low Income      Yes 
+		   0,            // Excellent >35% DTI   Low Income      No  
+		   54,           // Excellent >35% DTI   Moderate Income Yes 
+		   0,            // Excellent >35% DTI   Moderate Income No  
+		   59,           // Excellent >35% DTI   High Income     Yes 
+		   0);           // Excellent >35% DTI   High Income     No  ;
+	title = "Expected Risk";
+	whenchanged = 1697795764;
+	visual V1 {
+		center = (1128, 852);
+		height = 24;
+		};
+	};
+
+node LD {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (Low, Medium, High);
+	statetitles = ("1-3 years", "4-6 years", "7+ years");
+	parents = ();
+	probs = 
+		// 1-3 years    4-6 years    7+ years     
+		  (0.5,         0.3,         0.2);
+	title = "Loan Duration";
+	whenchanged = 1697797420;
+	belief = (0.5, 0.3, 0.2);
+	visual V1 {
+		center = (1938, 672);
+		height = 25;
+		};
+	};
+
+node MR {
+	kind = NATURE;
+	discrete = TRUE;
+	states = (Low, Medium, High);
+	statetitles = ("2-4%", "4.1-6%", "6.1-10%");
+	parents = ();
+	title = "Market Rate";
+	whenchanged = 1697797414;
+	belief = (0.3333333, 0.3333333, 0.3333333);
+	visual V1 {
+		center = (1482, 948);
+		height = 26;
+		};
+	};
+
+node IR {
+	kind = DECISION;
+	discrete = TRUE;
+	chance = DETERMIN;
+	states = (Low, Medium, High);
+	parents = (CS, A, LD, MR);
+	functable = 
+		                    // CS        A   LD        MR      
+		  (High,            // Poor      Yes 1-3 years 2-4%    
+		   High,            // Poor      Yes 1-3 years 4.1-6%  
+		   High,            // Poor      Yes 1-3 years 6.1-10% 
+		   High,            // Poor      Yes 4-6 years 2-4%    
+		   High,            // Poor      Yes 4-6 years 4.1-6%  
+		   High,            // Poor      Yes 4-6 years 6.1-10% 
+		   High,            // Poor      Yes 7+ years  2-4%    
+		   High,            // Poor      Yes 7+ years  4.1-6%  
+		   High,            // Poor      Yes 7+ years  6.1-10% 
+		   Low,             // Poor      No  1-3 years 2-4%    
+		   Low,             // Poor      No  1-3 years 4.1-6%  
+		   Low,             // Poor      No  1-3 years 6.1-10% 
+		   Low,             // Poor      No  4-6 years 2-4%    
+		   Low,             // Poor      No  4-6 years 4.1-6%  
+		   Low,             // Poor      No  4-6 years 6.1-10% 
+		   Low,             // Poor      No  7+ years  2-4%    
+		   Low,             // Poor      No  7+ years  4.1-6%  
+		   Low,             // Poor      No  7+ years  6.1-10% 
+		   High,            // Fair      Yes 1-3 years 2-4%    
+		   High,            // Fair      Yes 1-3 years 4.1-6%  
+		   High,            // Fair      Yes 1-3 years 6.1-10% 
+		   High,            // Fair      Yes 4-6 years 2-4%    
+		   High,            // Fair      Yes 4-6 years 4.1-6%  
+		   High,            // Fair      Yes 4-6 years 6.1-10% 
+		   High,            // Fair      Yes 7+ years  2-4%    
+		   High,            // Fair      Yes 7+ years  4.1-6%  
+		   High,            // Fair      Yes 7+ years  6.1-10% 
+		   Low,             // Fair      No  1-3 years 2-4%    
+		   Low,             // Fair      No  1-3 years 4.1-6%  
+		   Low,             // Fair      No  1-3 years 6.1-10% 
+		   Low,             // Fair      No  4-6 years 2-4%    
+		   Low,             // Fair      No  4-6 years 4.1-6%  
+		   Low,             // Fair      No  4-6 years 6.1-10% 
+		   Low,             // Fair      No  7+ years  2-4%    
+		   Low,             // Fair      No  7+ years  4.1-6%  
+		   Low,             // Fair      No  7+ years  6.1-10% 
+		   High,            // Good      Yes 1-3 years 2-4%    
+		   High,            // Good      Yes 1-3 years 4.1-6%  
+		   High,            // Good      Yes 1-3 years 6.1-10% 
+		   High,            // Good      Yes 4-6 years 2-4%    
+		   High,            // Good      Yes 4-6 years 4.1-6%  
+		   High,            // Good      Yes 4-6 years 6.1-10% 
+		   High,            // Good      Yes 7+ years  2-4%    
+		   High,            // Good      Yes 7+ years  4.1-6%  
+		   High,            // Good      Yes 7+ years  6.1-10% 
+		   Low,             // Good      No  1-3 years 2-4%    
+		   Low,             // Good      No  1-3 years 4.1-6%  
+		   Low,             // Good      No  1-3 years 6.1-10% 
+		   Low,             // Good      No  4-6 years 2-4%    
+		   Low,             // Good      No  4-6 years 4.1-6%  
+		   Low,             // Good      No  4-6 years 6.1-10% 
+		   Low,             // Good      No  7+ years  2-4%    
+		   Low,             // Good      No  7+ years  4.1-6%  
+		   Low,             // Good      No  7+ years  6.1-10% 
+		   High,            // Excellent Yes 1-3 years 2-4%    
+		   High,            // Excellent Yes 1-3 years 4.1-6%  
+		   High,            // Excellent Yes 1-3 years 6.1-10% 
+		   High,            // Excellent Yes 4-6 years 2-4%    
+		   High,            // Excellent Yes 4-6 years 4.1-6%  
+		   High,            // Excellent Yes 4-6 years 6.1-10% 
+		   High,            // Excellent Yes 7+ years  2-4%    
+		   High,            // Excellent Yes 7+ years  4.1-6%  
+		   High,            // Excellent Yes 7+ years  6.1-10% 
+		   Low,             // Excellent No  1-3 years 2-4%    
+		   Low,             // Excellent No  1-3 years 4.1-6%  
+		   Low,             // Excellent No  1-3 years 6.1-10% 
+		   Low,             // Excellent No  4-6 years 2-4%    
+		   Low,             // Excellent No  4-6 years 4.1-6%  
+		   Low,             // Excellent No  4-6 years 6.1-10% 
+		   Low,             // Excellent No  7+ years  2-4%    
+		   Low,             // Excellent No  7+ years  4.1-6%  
+		   Low);            // Excellent No  7+ years  6.1-10% ;
+	title = "Offered Interest Rate?";
+	whenchanged = 1697797448;
+	belief = (0, 0, 1);
+	visual V1 {
+		center = (1446, 834);
+		height = 28;
+		};
+	};
+
+node LA {
+	kind = DECISION;
+	discrete = TRUE;
+	chance = DETERMIN;
+	states = (Tiny, Small, Medium, Large);
+	statetitles = ("$100 - $1,000", "$1,001 - $10,000", "$10,001 - $100,000", "$100,001 and above");
+	parents = (CS, A, LD, MR, IR);
+	functable = 
+		                    // CS        A   LD        MR      IR     
+		  (Large,           // Poor      Yes 1-3 years 2-4%    Low    
+		   Large,           // Poor      Yes 1-3 years 2-4%    Medium 
+		   Large,           // Poor      Yes 1-3 years 2-4%    High   
+		   Large,           // Poor      Yes 1-3 years 4.1-6%  Low    
+		   Large,           // Poor      Yes 1-3 years 4.1-6%  Medium 
+		   Large,           // Poor      Yes 1-3 years 4.1-6%  High   
+		   Large,           // Poor      Yes 1-3 years 6.1-10% Low    
+		   Large,           // Poor      Yes 1-3 years 6.1-10% Medium 
+		   Large,           // Poor      Yes 1-3 years 6.1-10% High   
+		   Large,           // Poor      Yes 4-6 years 2-4%    Low    
+		   Large,           // Poor      Yes 4-6 years 2-4%    Medium 
+		   Large,           // Poor      Yes 4-6 years 2-4%    High   
+		   Large,           // Poor      Yes 4-6 years 4.1-6%  Low    
+		   Large,           // Poor      Yes 4-6 years 4.1-6%  Medium 
+		   Large,           // Poor      Yes 4-6 years 4.1-6%  High   
+		   Large,           // Poor      Yes 4-6 years 6.1-10% Low    
+		   Large,           // Poor      Yes 4-6 years 6.1-10% Medium 
+		   Large,           // Poor      Yes 4-6 years 6.1-10% High   
+		   Large,           // Poor      Yes 7+ years  2-4%    Low    
+		   Large,           // Poor      Yes 7+ years  2-4%    Medium 
+		   Large,           // Poor      Yes 7+ years  2-4%    High   
+		   Large,           // Poor      Yes 7+ years  4.1-6%  Low    
+		   Large,           // Poor      Yes 7+ years  4.1-6%  Medium 
+		   Large,           // Poor      Yes 7+ years  4.1-6%  High   
+		   Large,           // Poor      Yes 7+ years  6.1-10% Low    
+		   Large,           // Poor      Yes 7+ years  6.1-10% Medium 
+		   Large,           // Poor      Yes 7+ years  6.1-10% High   
+		   Tiny,            // Poor      No  1-3 years 2-4%    Low    
+		   Tiny,            // Poor      No  1-3 years 2-4%    Medium 
+		   Tiny,            // Poor      No  1-3 years 2-4%    High   
+		   Tiny,            // Poor      No  1-3 years 4.1-6%  Low    
+		   Tiny,            // Poor      No  1-3 years 4.1-6%  Medium 
+		   Tiny,            // Poor      No  1-3 years 4.1-6%  High   
+		   Tiny,            // Poor      No  1-3 years 6.1-10% Low    
+		   Tiny,            // Poor      No  1-3 years 6.1-10% Medium 
+		   Tiny,            // Poor      No  1-3 years 6.1-10% High   
+		   Tiny,            // Poor      No  4-6 years 2-4%    Low    
+		   Tiny,            // Poor      No  4-6 years 2-4%    Medium 
+		   Tiny,            // Poor      No  4-6 years 2-4%    High   
+		   Tiny,            // Poor      No  4-6 years 4.1-6%  Low    
+		   Tiny,            // Poor      No  4-6 years 4.1-6%  Medium 
+		   Tiny,            // Poor      No  4-6 years 4.1-6%  High   
+		   Tiny,            // Poor      No  4-6 years 6.1-10% Low    
+		   Tiny,            // Poor      No  4-6 years 6.1-10% Medium 
+		   Tiny,            // Poor      No  4-6 years 6.1-10% High   
+		   Tiny,            // Poor      No  7+ years  2-4%    Low    
+		   Tiny,            // Poor      No  7+ years  2-4%    Medium 
+		   Tiny,            // Poor      No  7+ years  2-4%    High   
+		   Tiny,            // Poor      No  7+ years  4.1-6%  Low    
+		   Tiny,            // Poor      No  7+ years  4.1-6%  Medium 
+		   Tiny,            // Poor      No  7+ years  4.1-6%  High   
+		   Tiny,            // Poor      No  7+ years  6.1-10% Low    
+		   Tiny,            // Poor      No  7+ years  6.1-10% Medium 
+		   Tiny,            // Poor      No  7+ years  6.1-10% High   
+		   Large,           // Fair      Yes 1-3 years 2-4%    Low    
+		   Large,           // Fair      Yes 1-3 years 2-4%    Medium 
+		   Large,           // Fair      Yes 1-3 years 2-4%    High   
+		   Large,           // Fair      Yes 1-3 years 4.1-6%  Low    
+		   Large,           // Fair      Yes 1-3 years 4.1-6%  Medium 
+		   Large,           // Fair      Yes 1-3 years 4.1-6%  High   
+		   Large,           // Fair      Yes 1-3 years 6.1-10% Low    
+		   Large,           // Fair      Yes 1-3 years 6.1-10% Medium 
+		   Large,           // Fair      Yes 1-3 years 6.1-10% High   
+		   Large,           // Fair      Yes 4-6 years 2-4%    Low    
+		   Large,           // Fair      Yes 4-6 years 2-4%    Medium 
+		   Large,           // Fair      Yes 4-6 years 2-4%    High   
+		   Large,           // Fair      Yes 4-6 years 4.1-6%  Low    
+		   Large,           // Fair      Yes 4-6 years 4.1-6%  Medium 
+		   Large,           // Fair      Yes 4-6 years 4.1-6%  High   
+		   Large,           // Fair      Yes 4-6 years 6.1-10% Low    
+		   Large,           // Fair      Yes 4-6 years 6.1-10% Medium 
+		   Large,           // Fair      Yes 4-6 years 6.1-10% High   
+		   Large,           // Fair      Yes 7+ years  2-4%    Low    
+		   Large,           // Fair      Yes 7+ years  2-4%    Medium 
+		   Large,           // Fair      Yes 7+ years  2-4%    High   
+		   Large,           // Fair      Yes 7+ years  4.1-6%  Low    
+		   Large,           // Fair      Yes 7+ years  4.1-6%  Medium 
+		   Large,           // Fair      Yes 7+ years  4.1-6%  High   
+		   Large,           // Fair      Yes 7+ years  6.1-10% Low    
+		   Large,           // Fair      Yes 7+ years  6.1-10% Medium 
+		   Large,           // Fair      Yes 7+ years  6.1-10% High   
+		   Tiny,            // Fair      No  1-3 years 2-4%    Low    
+		   Tiny,            // Fair      No  1-3 years 2-4%    Medium 
+		   Tiny,            // Fair      No  1-3 years 2-4%    High   
+		   Tiny,            // Fair      No  1-3 years 4.1-6%  Low    
+		   Tiny,            // Fair      No  1-3 years 4.1-6%  Medium 
+		   Tiny,            // Fair      No  1-3 years 4.1-6%  High   
+		   Tiny,            // Fair      No  1-3 years 6.1-10% Low    
+		   Tiny,            // Fair      No  1-3 years 6.1-10% Medium 
+		   Tiny,            // Fair      No  1-3 years 6.1-10% High   
+		   Tiny,            // Fair      No  4-6 years 2-4%    Low    
+		   Tiny,            // Fair      No  4-6 years 2-4%    Medium 
+		   Tiny,            // Fair      No  4-6 years 2-4%    High   
+		   Tiny,            // Fair      No  4-6 years 4.1-6%  Low    
+		   Tiny,            // Fair      No  4-6 years 4.1-6%  Medium 
+		   Tiny,            // Fair      No  4-6 years 4.1-6%  High   
+		   Tiny,            // Fair      No  4-6 years 6.1-10% Low    
+		   Tiny,            // Fair      No  4-6 years 6.1-10% Medium 
+		   Tiny,            // Fair      No  4-6 years 6.1-10% High   
+		   Tiny,            // Fair      No  7+ years  2-4%    Low    
+		   Tiny,            // Fair      No  7+ years  2-4%    Medium 
+		   Tiny,            // Fair      No  7+ years  2-4%    High   
+		   Tiny,            // Fair      No  7+ years  4.1-6%  Low    
+		   Tiny,            // Fair      No  7+ years  4.1-6%  Medium 
+		   Tiny,            // Fair      No  7+ years  4.1-6%  High   
+		   Tiny,            // Fair      No  7+ years  6.1-10% Low    
+		   Tiny,            // Fair      No  7+ years  6.1-10% Medium 
+		   Tiny,            // Fair      No  7+ years  6.1-10% High   
+		   Large,           // Good      Yes 1-3 years 2-4%    Low    
+		   Large,           // Good      Yes 1-3 years 2-4%    Medium 
+		   Large,           // Good      Yes 1-3 years 2-4%    High   
+		   Large,           // Good      Yes 1-3 years 4.1-6%  Low    
+		   Large,           // Good      Yes 1-3 years 4.1-6%  Medium 
+		   Large,           // Good      Yes 1-3 years 4.1-6%  High   
+		   Large,           // Good      Yes 1-3 years 6.1-10% Low    
+		   Large,           // Good      Yes 1-3 years 6.1-10% Medium 
+		   Large,           // Good      Yes 1-3 years 6.1-10% High   
+		   Large,           // Good      Yes 4-6 years 2-4%    Low    
+		   Large,           // Good      Yes 4-6 years 2-4%    Medium 
+		   Large,           // Good      Yes 4-6 years 2-4%    High   
+		   Large,           // Good      Yes 4-6 years 4.1-6%  Low    
+		   Large,           // Good      Yes 4-6 years 4.1-6%  Medium 
+		   Large,           // Good      Yes 4-6 years 4.1-6%  High   
+		   Large,           // Good      Yes 4-6 years 6.1-10% Low    
+		   Large,           // Good      Yes 4-6 years 6.1-10% Medium 
+		   Large,           // Good      Yes 4-6 years 6.1-10% High   
+		   Large,           // Good      Yes 7+ years  2-4%    Low    
+		   Large,           // Good      Yes 7+ years  2-4%    Medium 
+		   Large,           // Good      Yes 7+ years  2-4%    High   
+		   Large,           // Good      Yes 7+ years  4.1-6%  Low    
+		   Large,           // Good      Yes 7+ years  4.1-6%  Medium 
+		   Large,           // Good      Yes 7+ years  4.1-6%  High   
+		   Large,           // Good      Yes 7+ years  6.1-10% Low    
+		   Large,           // Good      Yes 7+ years  6.1-10% Medium 
+		   Large,           // Good      Yes 7+ years  6.1-10% High   
+		   Tiny,            // Good      No  1-3 years 2-4%    Low    
+		   Tiny,            // Good      No  1-3 years 2-4%    Medium 
+		   Tiny,            // Good      No  1-3 years 2-4%    High   
+		   Tiny,            // Good      No  1-3 years 4.1-6%  Low    
+		   Tiny,            // Good      No  1-3 years 4.1-6%  Medium 
+		   Tiny,            // Good      No  1-3 years 4.1-6%  High   
+		   Tiny,            // Good      No  1-3 years 6.1-10% Low    
+		   Tiny,            // Good      No  1-3 years 6.1-10% Medium 
+		   Tiny,            // Good      No  1-3 years 6.1-10% High   
+		   Tiny,            // Good      No  4-6 years 2-4%    Low    
+		   Tiny,            // Good      No  4-6 years 2-4%    Medium 
+		   Tiny,            // Good      No  4-6 years 2-4%    High   
+		   Tiny,            // Good      No  4-6 years 4.1-6%  Low    
+		   Tiny,            // Good      No  4-6 years 4.1-6%  Medium 
+		   Tiny,            // Good      No  4-6 years 4.1-6%  High   
+		   Tiny,            // Good      No  4-6 years 6.1-10% Low    
+		   Tiny,            // Good      No  4-6 years 6.1-10% Medium 
+		   Tiny,            // Good      No  4-6 years 6.1-10% High   
+		   Tiny,            // Good      No  7+ years  2-4%    Low    
+		   Tiny,            // Good      No  7+ years  2-4%    Medium 
+		   Tiny,            // Good      No  7+ years  2-4%    High   
+		   Tiny,            // Good      No  7+ years  4.1-6%  Low    
+		   Tiny,            // Good      No  7+ years  4.1-6%  Medium 
+		   Tiny,            // Good      No  7+ years  4.1-6%  High   
+		   Tiny,            // Good      No  7+ years  6.1-10% Low    
+		   Tiny,            // Good      No  7+ years  6.1-10% Medium 
+		   Tiny,            // Good      No  7+ years  6.1-10% High   
+		   Large,           // Excellent Yes 1-3 years 2-4%    Low    
+		   Large,           // Excellent Yes 1-3 years 2-4%    Medium 
+		   Large,           // Excellent Yes 1-3 years 2-4%    High   
+		   Large,           // Excellent Yes 1-3 years 4.1-6%  Low    
+		   Large,           // Excellent Yes 1-3 years 4.1-6%  Medium 
+		   Large,           // Excellent Yes 1-3 years 4.1-6%  High   
+		   Large,           // Excellent Yes 1-3 years 6.1-10% Low    
+		   Large,           // Excellent Yes 1-3 years 6.1-10% Medium 
+		   Large,           // Excellent Yes 1-3 years 6.1-10% High   
+		   Large,           // Excellent Yes 4-6 years 2-4%    Low    
+		   Large,           // Excellent Yes 4-6 years 2-4%    Medium 
+		   Large,           // Excellent Yes 4-6 years 2-4%    High   
+		   Large,           // Excellent Yes 4-6 years 4.1-6%  Low    
+		   Large,           // Excellent Yes 4-6 years 4.1-6%  Medium 
+		   Large,           // Excellent Yes 4-6 years 4.1-6%  High   
+		   Large,           // Excellent Yes 4-6 years 6.1-10% Low    
+		   Large,           // Excellent Yes 4-6 years 6.1-10% Medium 
+		   Large,           // Excellent Yes 4-6 years 6.1-10% High   
+		   Large,           // Excellent Yes 7+ years  2-4%    Low    
+		   Large,           // Excellent Yes 7+ years  2-4%    Medium 
+		   Large,           // Excellent Yes 7+ years  2-4%    High   
+		   Large,           // Excellent Yes 7+ years  4.1-6%  Low    
+		   Large,           // Excellent Yes 7+ years  4.1-6%  Medium 
+		   Large,           // Excellent Yes 7+ years  4.1-6%  High   
+		   Large,           // Excellent Yes 7+ years  6.1-10% Low    
+		   Large,           // Excellent Yes 7+ years  6.1-10% Medium 
+		   Large,           // Excellent Yes 7+ years  6.1-10% High   
+		   Tiny,            // Excellent No  1-3 years 2-4%    Low    
+		   Tiny,            // Excellent No  1-3 years 2-4%    Medium 
+		   Tiny,            // Excellent No  1-3 years 2-4%    High   
+		   Tiny,            // Excellent No  1-3 years 4.1-6%  Low    
+		   Tiny,            // Excellent No  1-3 years 4.1-6%  Medium 
+		   Tiny,            // Excellent No  1-3 years 4.1-6%  High   
+		   Tiny,            // Excellent No  1-3 years 6.1-10% Low    
+		   Tiny,            // Excellent No  1-3 years 6.1-10% Medium 
+		   Tiny,            // Excellent No  1-3 years 6.1-10% High   
+		   Tiny,            // Excellent No  4-6 years 2-4%    Low    
+		   Tiny,            // Excellent No  4-6 years 2-4%    Medium 
+		   Tiny,            // Excellent No  4-6 years 2-4%    High   
+		   Tiny,            // Excellent No  4-6 years 4.1-6%  Low    
+		   Tiny,            // Excellent No  4-6 years 4.1-6%  Medium 
+		   Tiny,            // Excellent No  4-6 years 4.1-6%  High   
+		   Tiny,            // Excellent No  4-6 years 6.1-10% Low    
+		   Tiny,            // Excellent No  4-6 years 6.1-10% Medium 
+		   Tiny,            // Excellent No  4-6 years 6.1-10% High   
+		   Tiny,            // Excellent No  7+ years  2-4%    Low    
+		   Tiny,            // Excellent No  7+ years  2-4%    Medium 
+		   Tiny,            // Excellent No  7+ years  2-4%    High   
+		   Tiny,            // Excellent No  7+ years  4.1-6%  Low    
+		   Tiny,            // Excellent No  7+ years  4.1-6%  Medium 
+		   Tiny,            // Excellent No  7+ years  4.1-6%  High   
+		   Tiny,            // Excellent No  7+ years  6.1-10% Low    
+		   Tiny,            // Excellent No  7+ years  6.1-10% Medium 
+		   Tiny);           // Excellent No  7+ years  6.1-10% High   ;
+	title = "Offered Loan Amount?";
+	whenchanged = 1697797415;
+	belief = (0, 0, 0, 1);
+	visual V1 {
+		center = (1812, 852);
+		height = 27;
+		link 1 {
+			path = ((1375, 593), (1748, 814));
+			};
+		link 2 {
+			path = ((1410, 713), (1697, 812));
+			};
+		link 4 {
+			path = ((1564, 925), (1703, 884));
+			};
+		};
+	};
+
+node EP {
+	kind = UTILITY;
+	discrete = FALSE;
+	measure = RATIO;
+	chance = DETERMIN;
+	parents = (MR, CS, IR, A, LD, LA);
+	functable = 
+		                 // MR      CS        IR     A   LD        LA               
+		  (-35,          // 2-4%    Poor      Low    Yes 1-3 years $100 - $1,000    
+		   -15,          // 2-4%    Poor      Low    Yes 1-3 years $1,001 - $10,000 
+		   5,            // 2-4%    Poor      Low    Yes 1-3 years $10,001 - $100,0 
+		   25,           // 2-4%    Poor      Low    Yes 1-3 years $100,001 and abo 
+		   -30,          // 2-4%    Poor      Low    Yes 4-6 years $100 - $1,000    
+		   -10,          // 2-4%    Poor      Low    Yes 4-6 years $1,001 - $10,000 
+		   10,           // 2-4%    Poor      Low    Yes 4-6 years $10,001 - $100,0 
+		   30,           // 2-4%    Poor      Low    Yes 4-6 years $100,001 and abo 
+		   -25,          // 2-4%    Poor      Low    Yes 7+ years  $100 - $1,000    
+		   -5,           // 2-4%    Poor      Low    Yes 7+ years  $1,001 - $10,000 
+		   15,           // 2-4%    Poor      Low    Yes 7+ years  $10,001 - $100,0 
+		   35,           // 2-4%    Poor      Low    Yes 7+ years  $100,001 and abo 
+		   0,            // 2-4%    Poor      Low    No  1-3 years $100 - $1,000    
+		   0,            // 2-4%    Poor      Low    No  1-3 years $1,001 - $10,000 
+		   0,            // 2-4%    Poor      Low    No  1-3 years $10,001 - $100,0 
+		   0,            // 2-4%    Poor      Low    No  1-3 years $100,001 and abo 
+		   0,            // 2-4%    Poor      Low    No  4-6 years $100 - $1,000    
+		   0,            // 2-4%    Poor      Low    No  4-6 years $1,001 - $10,000 
+		   0,            // 2-4%    Poor      Low    No  4-6 years $10,001 - $100,0 
+		   0,            // 2-4%    Poor      Low    No  4-6 years $100,001 and abo 
+		   0,            // 2-4%    Poor      Low    No  7+ years  $100 - $1,000    
+		   0,            // 2-4%    Poor      Low    No  7+ years  $1,001 - $10,000 
+		   0,            // 2-4%    Poor      Low    No  7+ years  $10,001 - $100,0 
+		   0,            // 2-4%    Poor      Low    No  7+ years  $100,001 and abo 
+		   -25,          // 2-4%    Poor      Medium Yes 1-3 years $100 - $1,000    
+		   -5,           // 2-4%    Poor      Medium Yes 1-3 years $1,001 - $10,000 
+		   15,           // 2-4%    Poor      Medium Yes 1-3 years $10,001 - $100,0 
+		   35,           // 2-4%    Poor      Medium Yes 1-3 years $100,001 and abo 
+		   -20,          // 2-4%    Poor      Medium Yes 4-6 years $100 - $1,000    
+		   0,            // 2-4%    Poor      Medium Yes 4-6 years $1,001 - $10,000 
+		   20,           // 2-4%    Poor      Medium Yes 4-6 years $10,001 - $100,0 
+		   40,           // 2-4%    Poor      Medium Yes 4-6 years $100,001 and abo 
+		   -15,          // 2-4%    Poor      Medium Yes 7+ years  $100 - $1,000    
+		   5,            // 2-4%    Poor      Medium Yes 7+ years  $1,001 - $10,000 
+		   25,           // 2-4%    Poor      Medium Yes 7+ years  $10,001 - $100,0 
+		   45,           // 2-4%    Poor      Medium Yes 7+ years  $100,001 and abo 
+		   0,            // 2-4%    Poor      Medium No  1-3 years $100 - $1,000    
+		   0,            // 2-4%    Poor      Medium No  1-3 years $1,001 - $10,000 
+		   0,            // 2-4%    Poor      Medium No  1-3 years $10,001 - $100,0 
+		   0,            // 2-4%    Poor      Medium No  1-3 years $100,001 and abo 
+		   0,            // 2-4%    Poor      Medium No  4-6 years $100 - $1,000    
+		   0,            // 2-4%    Poor      Medium No  4-6 years $1,001 - $10,000 
+		   0,            // 2-4%    Poor      Medium No  4-6 years $10,001 - $100,0 
+		   0,            // 2-4%    Poor      Medium No  4-6 years $100,001 and abo 
+		   0,            // 2-4%    Poor      Medium No  7+ years  $100 - $1,000    
+		   0,            // 2-4%    Poor      Medium No  7+ years  $1,001 - $10,000 
+		   0,            // 2-4%    Poor      Medium No  7+ years  $10,001 - $100,0 
+		   0,            // 2-4%    Poor      Medium No  7+ years  $100,001 and abo 
+		   -15,          // 2-4%    Poor      High   Yes 1-3 years $100 - $1,000    
+		   5,            // 2-4%    Poor      High   Yes 1-3 years $1,001 - $10,000 
+		   25,           // 2-4%    Poor      High   Yes 1-3 years $10,001 - $100,0 
+		   45,           // 2-4%    Poor      High   Yes 1-3 years $100,001 and abo 
+		   -10,          // 2-4%    Poor      High   Yes 4-6 years $100 - $1,000    
+		   10,           // 2-4%    Poor      High   Yes 4-6 years $1,001 - $10,000 
+		   30,           // 2-4%    Poor      High   Yes 4-6 years $10,001 - $100,0 
+		   50,           // 2-4%    Poor      High   Yes 4-6 years $100,001 and abo 
+		   -5,           // 2-4%    Poor      High   Yes 7+ years  $100 - $1,000    
+		   15,           // 2-4%    Poor      High   Yes 7+ years  $1,001 - $10,000 
+		   35,           // 2-4%    Poor      High   Yes 7+ years  $10,001 - $100,0 
+		   55,           // 2-4%    Poor      High   Yes 7+ years  $100,001 and abo 
+		   0,            // 2-4%    Poor      High   No  1-3 years $100 - $1,000    
+		   0,            // 2-4%    Poor      High   No  1-3 years $1,001 - $10,000 
+		   0,            // 2-4%    Poor      High   No  1-3 years $10,001 - $100,0 
+		   0,            // 2-4%    Poor      High   No  1-3 years $100,001 and abo 
+		   0,            // 2-4%    Poor      High   No  4-6 years $100 - $1,000    
+		   0,            // 2-4%    Poor      High   No  4-6 years $1,001 - $10,000 
+		   0,            // 2-4%    Poor      High   No  4-6 years $10,001 - $100,0 
+		   0,            // 2-4%    Poor      High   No  4-6 years $100,001 and abo 
+		   0,            // 2-4%    Poor      High   No  7+ years  $100 - $1,000    
+		   0,            // 2-4%    Poor      High   No  7+ years  $1,001 - $10,000 
+		   0,            // 2-4%    Poor      High   No  7+ years  $10,001 - $100,0 
+		   0,            // 2-4%    Poor      High   No  7+ years  $100,001 and abo 
+		   -15,          // 2-4%    Fair      Low    Yes 1-3 years $100 - $1,000    
+		   5,            // 2-4%    Fair      Low    Yes 1-3 years $1,001 - $10,000 
+		   25,           // 2-4%    Fair      Low    Yes 1-3 years $10,001 - $100,0 
+		   45,           // 2-4%    Fair      Low    Yes 1-3 years $100,001 and abo 
+		   -10,          // 2-4%    Fair      Low    Yes 4-6 years $100 - $1,000    
+		   10,           // 2-4%    Fair      Low    Yes 4-6 years $1,001 - $10,000 
+		   30,           // 2-4%    Fair      Low    Yes 4-6 years $10,001 - $100,0 
+		   50,           // 2-4%    Fair      Low    Yes 4-6 years $100,001 and abo 
+		   -5,           // 2-4%    Fair      Low    Yes 7+ years  $100 - $1,000    
+		   15,           // 2-4%    Fair      Low    Yes 7+ years  $1,001 - $10,000 
+		   35,           // 2-4%    Fair      Low    Yes 7+ years  $10,001 - $100,0 
+		   55,           // 2-4%    Fair      Low    Yes 7+ years  $100,001 and abo 
+		   0,            // 2-4%    Fair      Low    No  1-3 years $100 - $1,000    
+		   0,            // 2-4%    Fair      Low    No  1-3 years $1,001 - $10,000 
+		   0,            // 2-4%    Fair      Low    No  1-3 years $10,001 - $100,0 
+		   0,            // 2-4%    Fair      Low    No  1-3 years $100,001 and abo 
+		   0,            // 2-4%    Fair      Low    No  4-6 years $100 - $1,000    
+		   0,            // 2-4%    Fair      Low    No  4-6 years $1,001 - $10,000 
+		   0,            // 2-4%    Fair      Low    No  4-6 years $10,001 - $100,0 
+		   0,            // 2-4%    Fair      Low    No  4-6 years $100,001 and abo 
+		   0,            // 2-4%    Fair      Low    No  7+ years  $100 - $1,000    
+		   0,            // 2-4%    Fair      Low    No  7+ years  $1,001 - $10,000 
+		   0,            // 2-4%    Fair      Low    No  7+ years  $10,001 - $100,0 
+		   0,            // 2-4%    Fair      Low    No  7+ years  $100,001 and abo 
+		   -5,           // 2-4%    Fair      Medium Yes 1-3 years $100 - $1,000    
+		   15,           // 2-4%    Fair      Medium Yes 1-3 years $1,001 - $10,000 
+		   35,           // 2-4%    Fair      Medium Yes 1-3 years $10,001 - $100,0 
+		   55,           // 2-4%    Fair      Medium Yes 1-3 years $100,001 and abo 
+		   0,            // 2-4%    Fair      Medium Yes 4-6 years $100 - $1,000    
+		   20,           // 2-4%    Fair      Medium Yes 4-6 years $1,001 - $10,000 
+		   40,           // 2-4%    Fair      Medium Yes 4-6 years $10,001 - $100,0 
+		   60,           // 2-4%    Fair      Medium Yes 4-6 years $100,001 and abo 
+		   5,            // 2-4%    Fair      Medium Yes 7+ years  $100 - $1,000    
+		   25,           // 2-4%    Fair      Medium Yes 7+ years  $1,001 - $10,000 
+		   45,           // 2-4%    Fair      Medium Yes 7+ years  $10,001 - $100,0 
+		   65,           // 2-4%    Fair      Medium Yes 7+ years  $100,001 and abo 
+		   0,            // 2-4%    Fair      Medium No  1-3 years $100 - $1,000    
+		   0,            // 2-4%    Fair      Medium No  1-3 years $1,001 - $10,000 
+		   0,            // 2-4%    Fair      Medium No  1-3 years $10,001 - $100,0 
+		   0,            // 2-4%    Fair      Medium No  1-3 years $100,001 and abo 
+		   0,            // 2-4%    Fair      Medium No  4-6 years $100 - $1,000    
+		   0,            // 2-4%    Fair      Medium No  4-6 years $1,001 - $10,000 
+		   0,            // 2-4%    Fair      Medium No  4-6 years $10,001 - $100,0 
+		   0,            // 2-4%    Fair      Medium No  4-6 years $100,001 and abo 
+		   0,            // 2-4%    Fair      Medium No  7+ years  $100 - $1,000    
+		   0,            // 2-4%    Fair      Medium No  7+ years  $1,001 - $10,000 
+		   0,            // 2-4%    Fair      Medium No  7+ years  $10,001 - $100,0 
+		   0,            // 2-4%    Fair      Medium No  7+ years  $100,001 and abo 
+		   5,            // 2-4%    Fair      High   Yes 1-3 years $100 - $1,000    
+		   25,           // 2-4%    Fair      High   Yes 1-3 years $1,001 - $10,000 
+		   45,           // 2-4%    Fair      High   Yes 1-3 years $10,001 - $100,0 
+		   65,           // 2-4%    Fair      High   Yes 1-3 years $100,001 and abo 
+		   10,           // 2-4%    Fair      High   Yes 4-6 years $100 - $1,000    
+		   30,           // 2-4%    Fair      High   Yes 4-6 years $1,001 - $10,000 
+		   50,           // 2-4%    Fair      High   Yes 4-6 years $10,001 - $100,0 
+		   70,           // 2-4%    Fair      High   Yes 4-6 years $100,001 and abo 
+		   15,           // 2-4%    Fair      High   Yes 7+ years  $100 - $1,000    
+		   35,           // 2-4%    Fair      High   Yes 7+ years  $1,001 - $10,000 
+		   55,           // 2-4%    Fair      High   Yes 7+ years  $10,001 - $100,0 
+		   75,           // 2-4%    Fair      High   Yes 7+ years  $100,001 and abo 
+		   0,            // 2-4%    Fair      High   No  1-3 years $100 - $1,000    
+		   0,            // 2-4%    Fair      High   No  1-3 years $1,001 - $10,000 
+		   0,            // 2-4%    Fair      High   No  1-3 years $10,001 - $100,0 
+		   0,            // 2-4%    Fair      High   No  1-3 years $100,001 and abo 
+		   0,            // 2-4%    Fair      High   No  4-6 years $100 - $1,000    
+		   0,            // 2-4%    Fair      High   No  4-6 years $1,001 - $10,000 
+		   0,            // 2-4%    Fair      High   No  4-6 years $10,001 - $100,0 
+		   0,            // 2-4%    Fair      High   No  4-6 years $100,001 and abo 
+		   0,            // 2-4%    Fair      High   No  7+ years  $100 - $1,000    
+		   0,            // 2-4%    Fair      High   No  7+ years  $1,001 - $10,000 
+		   0,            // 2-4%    Fair      High   No  7+ years  $10,001 - $100,0 
+		   0,            // 2-4%    Fair      High   No  7+ years  $100,001 and abo 
+		   5,            // 2-4%    Good      Low    Yes 1-3 years $100 - $1,000    
+		   25,           // 2-4%    Good      Low    Yes 1-3 years $1,001 - $10,000 
+		   45,           // 2-4%    Good      Low    Yes 1-3 years $10,001 - $100,0 
+		   65,           // 2-4%    Good      Low    Yes 1-3 years $100,001 and abo 
+		   10,           // 2-4%    Good      Low    Yes 4-6 years $100 - $1,000    
+		   30,           // 2-4%    Good      Low    Yes 4-6 years $1,001 - $10,000 
+		   50,           // 2-4%    Good      Low    Yes 4-6 years $10,001 - $100,0 
+		   70,           // 2-4%    Good      Low    Yes 4-6 years $100,001 and abo 
+		   15,           // 2-4%    Good      Low    Yes 7+ years  $100 - $1,000    
+		   35,           // 2-4%    Good      Low    Yes 7+ years  $1,001 - $10,000 
+		   55,           // 2-4%    Good      Low    Yes 7+ years  $10,001 - $100,0 
+		   75,           // 2-4%    Good      Low    Yes 7+ years  $100,001 and abo 
+		   0,            // 2-4%    Good      Low    No  1-3 years $100 - $1,000    
+		   0,            // 2-4%    Good      Low    No  1-3 years $1,001 - $10,000 
+		   0,            // 2-4%    Good      Low    No  1-3 years $10,001 - $100,0 
+		   0,            // 2-4%    Good      Low    No  1-3 years $100,001 and abo 
+		   0,            // 2-4%    Good      Low    No  4-6 years $100 - $1,000    
+		   0,            // 2-4%    Good      Low    No  4-6 years $1,001 - $10,000 
+		   0,            // 2-4%    Good      Low    No  4-6 years $10,001 - $100,0 
+		   0,            // 2-4%    Good      Low    No  4-6 years $100,001 and abo 
+		   0,            // 2-4%    Good      Low    No  7+ years  $100 - $1,000    
+		   0,            // 2-4%    Good      Low    No  7+ years  $1,001 - $10,000 
+		   0,            // 2-4%    Good      Low    No  7+ years  $10,001 - $100,0 
+		   0,            // 2-4%    Good      Low    No  7+ years  $100,001 and abo 
+		   15,           // 2-4%    Good      Medium Yes 1-3 years $100 - $1,000    
+		   35,           // 2-4%    Good      Medium Yes 1-3 years $1,001 - $10,000 
+		   55,           // 2-4%    Good      Medium Yes 1-3 years $10,001 - $100,0 
+		   75,           // 2-4%    Good      Medium Yes 1-3 years $100,001 and abo 
+		   20,           // 2-4%    Good      Medium Yes 4-6 years $100 - $1,000    
+		   40,           // 2-4%    Good      Medium Yes 4-6 years $1,001 - $10,000 
+		   60,           // 2-4%    Good      Medium Yes 4-6 years $10,001 - $100,0 
+		   80,           // 2-4%    Good      Medium Yes 4-6 years $100,001 and abo 
+		   25,           // 2-4%    Good      Medium Yes 7+ years  $100 - $1,000    
+		   45,           // 2-4%    Good      Medium Yes 7+ years  $1,001 - $10,000 
+		   65,           // 2-4%    Good      Medium Yes 7+ years  $10,001 - $100,0 
+		   85,           // 2-4%    Good      Medium Yes 7+ years  $100,001 and abo 
+		   0,            // 2-4%    Good      Medium No  1-3 years $100 - $1,000    
+		   0,            // 2-4%    Good      Medium No  1-3 years $1,001 - $10,000 
+		   0,            // 2-4%    Good      Medium No  1-3 years $10,001 - $100,0 
+		   0,            // 2-4%    Good      Medium No  1-3 years $100,001 and abo 
+		   0,            // 2-4%    Good      Medium No  4-6 years $100 - $1,000    
+		   0,            // 2-4%    Good      Medium No  4-6 years $1,001 - $10,000 
+		   0,            // 2-4%    Good      Medium No  4-6 years $10,001 - $100,0 
+		   0,            // 2-4%    Good      Medium No  4-6 years $100,001 and abo 
+		   0,            // 2-4%    Good      Medium No  7+ years  $100 - $1,000    
+		   0,            // 2-4%    Good      Medium No  7+ years  $1,001 - $10,000 
+		   0,            // 2-4%    Good      Medium No  7+ years  $10,001 - $100,0 
+		   0,            // 2-4%    Good      Medium No  7+ years  $100,001 and abo 
+		   25,           // 2-4%    Good      High   Yes 1-3 years $100 - $1,000    
+		   45,           // 2-4%    Good      High   Yes 1-3 years $1,001 - $10,000 
+		   65,           // 2-4%    Good      High   Yes 1-3 years $10,001 - $100,0 
+		   85,           // 2-4%    Good      High   Yes 1-3 years $100,001 and abo 
+		   30,           // 2-4%    Good      High   Yes 4-6 years $100 - $1,000    
+		   50,           // 2-4%    Good      High   Yes 4-6 years $1,001 - $10,000 
+		   70,           // 2-4%    Good      High   Yes 4-6 years $10,001 - $100,0 
+		   90,           // 2-4%    Good      High   Yes 4-6 years $100,001 and abo 
+		   35,           // 2-4%    Good      High   Yes 7+ years  $100 - $1,000    
+		   55,           // 2-4%    Good      High   Yes 7+ years  $1,001 - $10,000 
+		   75,           // 2-4%    Good      High   Yes 7+ years  $10,001 - $100,0 
+		   95,           // 2-4%    Good      High   Yes 7+ years  $100,001 and abo 
+		   0,            // 2-4%    Good      High   No  1-3 years $100 - $1,000    
+		   0,            // 2-4%    Good      High   No  1-3 years $1,001 - $10,000 
+		   0,            // 2-4%    Good      High   No  1-3 years $10,001 - $100,0 
+		   0,            // 2-4%    Good      High   No  1-3 years $100,001 and abo 
+		   0,            // 2-4%    Good      High   No  4-6 years $100 - $1,000    
+		   0,            // 2-4%    Good      High   No  4-6 years $1,001 - $10,000 
+		   0,            // 2-4%    Good      High   No  4-6 years $10,001 - $100,0 
+		   0,            // 2-4%    Good      High   No  4-6 years $100,001 and abo 
+		   0,            // 2-4%    Good      High   No  7+ years  $100 - $1,000    
+		   0,            // 2-4%    Good      High   No  7+ years  $1,001 - $10,000 
+		   0,            // 2-4%    Good      High   No  7+ years  $10,001 - $100,0 
+		   0,            // 2-4%    Good      High   No  7+ years  $100,001 and abo 
+		   15,           // 2-4%    Excellent Low    Yes 1-3 years $100 - $1,000    
+		   35,           // 2-4%    Excellent Low    Yes 1-3 years $1,001 - $10,000 
+		   55,           // 2-4%    Excellent Low    Yes 1-3 years $10,001 - $100,0 
+		   75,           // 2-4%    Excellent Low    Yes 1-3 years $100,001 and abo 
+		   20,           // 2-4%    Excellent Low    Yes 4-6 years $100 - $1,000    
+		   40,           // 2-4%    Excellent Low    Yes 4-6 years $1,001 - $10,000 
+		   60,           // 2-4%    Excellent Low    Yes 4-6 years $10,001 - $100,0 
+		   80,           // 2-4%    Excellent Low    Yes 4-6 years $100,001 and abo 
+		   25,           // 2-4%    Excellent Low    Yes 7+ years  $100 - $1,000    
+		   45,           // 2-4%    Excellent Low    Yes 7+ years  $1,001 - $10,000 
+		   65,           // 2-4%    Excellent Low    Yes 7+ years  $10,001 - $100,0 
+		   85,           // 2-4%    Excellent Low    Yes 7+ years  $100,001 and abo 
+		   0,            // 2-4%    Excellent Low    No  1-3 years $100 - $1,000    
+		   0,            // 2-4%    Excellent Low    No  1-3 years $1,001 - $10,000 
+		   0,            // 2-4%    Excellent Low    No  1-3 years $10,001 - $100,0 
+		   0,            // 2-4%    Excellent Low    No  1-3 years $100,001 and abo 
+		   0,            // 2-4%    Excellent Low    No  4-6 years $100 - $1,000    
+		   0,            // 2-4%    Excellent Low    No  4-6 years $1,001 - $10,000 
+		   0,            // 2-4%    Excellent Low    No  4-6 years $10,001 - $100,0 
+		   0,            // 2-4%    Excellent Low    No  4-6 years $100,001 and abo 
+		   0,            // 2-4%    Excellent Low    No  7+ years  $100 - $1,000    
+		   0,            // 2-4%    Excellent Low    No  7+ years  $1,001 - $10,000 
+		   0,            // 2-4%    Excellent Low    No  7+ years  $10,001 - $100,0 
+		   0,            // 2-4%    Excellent Low    No  7+ years  $100,001 and abo 
+		   25,           // 2-4%    Excellent Medium Yes 1-3 years $100 - $1,000    
+		   45,           // 2-4%    Excellent Medium Yes 1-3 years $1,001 - $10,000 
+		   65,           // 2-4%    Excellent Medium Yes 1-3 years $10,001 - $100,0 
+		   85,           // 2-4%    Excellent Medium Yes 1-3 years $100,001 and abo 
+		   30,           // 2-4%    Excellent Medium Yes 4-6 years $100 - $1,000    
+		   50,           // 2-4%    Excellent Medium Yes 4-6 years $1,001 - $10,000 
+		   70,           // 2-4%    Excellent Medium Yes 4-6 years $10,001 - $100,0 
+		   90,           // 2-4%    Excellent Medium Yes 4-6 years $100,001 and abo 
+		   35,           // 2-4%    Excellent Medium Yes 7+ years  $100 - $1,000    
+		   55,           // 2-4%    Excellent Medium Yes 7+ years  $1,001 - $10,000 
+		   75,           // 2-4%    Excellent Medium Yes 7+ years  $10,001 - $100,0 
+		   95,           // 2-4%    Excellent Medium Yes 7+ years  $100,001 and abo 
+		   0,            // 2-4%    Excellent Medium No  1-3 years $100 - $1,000    
+		   0,            // 2-4%    Excellent Medium No  1-3 years $1,001 - $10,000 
+		   0,            // 2-4%    Excellent Medium No  1-3 years $10,001 - $100,0 
+		   0,            // 2-4%    Excellent Medium No  1-3 years $100,001 and abo 
+		   0,            // 2-4%    Excellent Medium No  4-6 years $100 - $1,000    
+		   0,            // 2-4%    Excellent Medium No  4-6 years $1,001 - $10,000 
+		   0,            // 2-4%    Excellent Medium No  4-6 years $10,001 - $100,0 
+		   0,            // 2-4%    Excellent Medium No  4-6 years $100,001 and abo 
+		   0,            // 2-4%    Excellent Medium No  7+ years  $100 - $1,000    
+		   0,            // 2-4%    Excellent Medium No  7+ years  $1,001 - $10,000 
+		   0,            // 2-4%    Excellent Medium No  7+ years  $10,001 - $100,0 
+		   0,            // 2-4%    Excellent Medium No  7+ years  $100,001 and abo 
+		   35,           // 2-4%    Excellent High   Yes 1-3 years $100 - $1,000    
+		   55,           // 2-4%    Excellent High   Yes 1-3 years $1,001 - $10,000 
+		   75,           // 2-4%    Excellent High   Yes 1-3 years $10,001 - $100,0 
+		   95,           // 2-4%    Excellent High   Yes 1-3 years $100,001 and abo 
+		   40,           // 2-4%    Excellent High   Yes 4-6 years $100 - $1,000    
+		   60,           // 2-4%    Excellent High   Yes 4-6 years $1,001 - $10,000 
+		   80,           // 2-4%    Excellent High   Yes 4-6 years $10,001 - $100,0 
+		   100,          // 2-4%    Excellent High   Yes 4-6 years $100,001 and abo 
+		   45,           // 2-4%    Excellent High   Yes 7+ years  $100 - $1,000    
+		   65,           // 2-4%    Excellent High   Yes 7+ years  $1,001 - $10,000 
+		   85,           // 2-4%    Excellent High   Yes 7+ years  $10,001 - $100,0 
+		   105,          // 2-4%    Excellent High   Yes 7+ years  $100,001 and abo 
+		   0,            // 2-4%    Excellent High   No  1-3 years $100 - $1,000    
+		   0,            // 2-4%    Excellent High   No  1-3 years $1,001 - $10,000 
+		   0,            // 2-4%    Excellent High   No  1-3 years $10,001 - $100,0 
+		   0,            // 2-4%    Excellent High   No  1-3 years $100,001 and abo 
+		   0,            // 2-4%    Excellent High   No  4-6 years $100 - $1,000    
+		   0,            // 2-4%    Excellent High   No  4-6 years $1,001 - $10,000 
+		   0,            // 2-4%    Excellent High   No  4-6 years $10,001 - $100,0 
+		   0,            // 2-4%    Excellent High   No  4-6 years $100,001 and abo 
+		   0,            // 2-4%    Excellent High   No  7+ years  $100 - $1,000    
+		   0,            // 2-4%    Excellent High   No  7+ years  $1,001 - $10,000 
+		   0,            // 2-4%    Excellent High   No  7+ years  $10,001 - $100,0 
+		   0,            // 2-4%    Excellent High   No  7+ years  $100,001 and abo 
+		   -55,          // 4.1-6%  Poor      Low    Yes 1-3 years $100 - $1,000    
+		   -35,          // 4.1-6%  Poor      Low    Yes 1-3 years $1,001 - $10,000 
+		   -15,          // 4.1-6%  Poor      Low    Yes 1-3 years $10,001 - $100,0 
+		   5,            // 4.1-6%  Poor      Low    Yes 1-3 years $100,001 and abo 
+		   -50,          // 4.1-6%  Poor      Low    Yes 4-6 years $100 - $1,000    
+		   -30,          // 4.1-6%  Poor      Low    Yes 4-6 years $1,001 - $10,000 
+		   -10,          // 4.1-6%  Poor      Low    Yes 4-6 years $10,001 - $100,0 
+		   10,           // 4.1-6%  Poor      Low    Yes 4-6 years $100,001 and abo 
+		   -45,          // 4.1-6%  Poor      Low    Yes 7+ years  $100 - $1,000    
+		   -25,          // 4.1-6%  Poor      Low    Yes 7+ years  $1,001 - $10,000 
+		   -5,           // 4.1-6%  Poor      Low    Yes 7+ years  $10,001 - $100,0 
+		   15,           // 4.1-6%  Poor      Low    Yes 7+ years  $100,001 and abo 
+		   0,            // 4.1-6%  Poor      Low    No  1-3 years $100 - $1,000    
+		   0,            // 4.1-6%  Poor      Low    No  1-3 years $1,001 - $10,000 
+		   0,            // 4.1-6%  Poor      Low    No  1-3 years $10,001 - $100,0 
+		   0,            // 4.1-6%  Poor      Low    No  1-3 years $100,001 and abo 
+		   0,            // 4.1-6%  Poor      Low    No  4-6 years $100 - $1,000    
+		   0,            // 4.1-6%  Poor      Low    No  4-6 years $1,001 - $10,000 
+		   0,            // 4.1-6%  Poor      Low    No  4-6 years $10,001 - $100,0 
+		   0,            // 4.1-6%  Poor      Low    No  4-6 years $100,001 and abo 
+		   0,            // 4.1-6%  Poor      Low    No  7+ years  $100 - $1,000    
+		   0,            // 4.1-6%  Poor      Low    No  7+ years  $1,001 - $10,000 
+		   0,            // 4.1-6%  Poor      Low    No  7+ years  $10,001 - $100,0 
+		   0,            // 4.1-6%  Poor      Low    No  7+ years  $100,001 and abo 
+		   -25,          // 4.1-6%  Poor      Medium Yes 1-3 years $100 - $1,000    
+		   -5,           // 4.1-6%  Poor      Medium Yes 1-3 years $1,001 - $10,000 
+		   15,           // 4.1-6%  Poor      Medium Yes 1-3 years $10,001 - $100,0 
+		   35,           // 4.1-6%  Poor      Medium Yes 1-3 years $100,001 and abo 
+		   -20,          // 4.1-6%  Poor      Medium Yes 4-6 years $100 - $1,000    
+		   0,            // 4.1-6%  Poor      Medium Yes 4-6 years $1,001 - $10,000 
+		   20,           // 4.1-6%  Poor      Medium Yes 4-6 years $10,001 - $100,0 
+		   40,           // 4.1-6%  Poor      Medium Yes 4-6 years $100,001 and abo 
+		   -15,          // 4.1-6%  Poor      Medium Yes 7+ years  $100 - $1,000    
+		   5,            // 4.1-6%  Poor      Medium Yes 7+ years  $1,001 - $10,000 
+		   25,           // 4.1-6%  Poor      Medium Yes 7+ years  $10,001 - $100,0 
+		   45,           // 4.1-6%  Poor      Medium Yes 7+ years  $100,001 and abo 
+		   0,            // 4.1-6%  Poor      Medium No  1-3 years $100 - $1,000    
+		   0,            // 4.1-6%  Poor      Medium No  1-3 years $1,001 - $10,000 
+		   0,            // 4.1-6%  Poor      Medium No  1-3 years $10,001 - $100,0 
+		   0,            // 4.1-6%  Poor      Medium No  1-3 years $100,001 and abo 
+		   0,            // 4.1-6%  Poor      Medium No  4-6 years $100 - $1,000    
+		   0,            // 4.1-6%  Poor      Medium No  4-6 years $1,001 - $10,000 
+		   0,            // 4.1-6%  Poor      Medium No  4-6 years $10,001 - $100,0 
+		   0,            // 4.1-6%  Poor      Medium No  4-6 years $100,001 and abo 
+		   0,            // 4.1-6%  Poor      Medium No  7+ years  $100 - $1,000    
+		   0,            // 4.1-6%  Poor      Medium No  7+ years  $1,001 - $10,000 
+		   0,            // 4.1-6%  Poor      Medium No  7+ years  $10,001 - $100,0 
+		   0,            // 4.1-6%  Poor      Medium No  7+ years  $100,001 and abo 
+		   5,            // 4.1-6%  Poor      High   Yes 1-3 years $100 - $1,000    
+		   25,           // 4.1-6%  Poor      High   Yes 1-3 years $1,001 - $10,000 
+		   45,           // 4.1-6%  Poor      High   Yes 1-3 years $10,001 - $100,0 
+		   65,           // 4.1-6%  Poor      High   Yes 1-3 years $100,001 and abo 
+		   10,           // 4.1-6%  Poor      High   Yes 4-6 years $100 - $1,000    
+		   30,           // 4.1-6%  Poor      High   Yes 4-6 years $1,001 - $10,000 
+		   50,           // 4.1-6%  Poor      High   Yes 4-6 years $10,001 - $100,0 
+		   70,           // 4.1-6%  Poor      High   Yes 4-6 years $100,001 and abo 
+		   15,           // 4.1-6%  Poor      High   Yes 7+ years  $100 - $1,000    
+		   35,           // 4.1-6%  Poor      High   Yes 7+ years  $1,001 - $10,000 
+		   55,           // 4.1-6%  Poor      High   Yes 7+ years  $10,001 - $100,0 
+		   75,           // 4.1-6%  Poor      High   Yes 7+ years  $100,001 and abo 
+		   0,            // 4.1-6%  Poor      High   No  1-3 years $100 - $1,000    
+		   0,            // 4.1-6%  Poor      High   No  1-3 years $1,001 - $10,000 
+		   0,            // 4.1-6%  Poor      High   No  1-3 years $10,001 - $100,0 
+		   0,            // 4.1-6%  Poor      High   No  1-3 years $100,001 and abo 
+		   0,            // 4.1-6%  Poor      High   No  4-6 years $100 - $1,000    
+		   0,            // 4.1-6%  Poor      High   No  4-6 years $1,001 - $10,000 
+		   0,            // 4.1-6%  Poor      High   No  4-6 years $10,001 - $100,0 
+		   0,            // 4.1-6%  Poor      High   No  4-6 years $100,001 and abo 
+		   0,            // 4.1-6%  Poor      High   No  7+ years  $100 - $1,000    
+		   0,            // 4.1-6%  Poor      High   No  7+ years  $1,001 - $10,000 
+		   0,            // 4.1-6%  Poor      High   No  7+ years  $10,001 - $100,0 
+		   0,            // 4.1-6%  Poor      High   No  7+ years  $100,001 and abo 
+		   -35,          // 4.1-6%  Fair      Low    Yes 1-3 years $100 - $1,000    
+		   -15,          // 4.1-6%  Fair      Low    Yes 1-3 years $1,001 - $10,000 
+		   5,            // 4.1-6%  Fair      Low    Yes 1-3 years $10,001 - $100,0 
+		   25,           // 4.1-6%  Fair      Low    Yes 1-3 years $100,001 and abo 
+		   -30,          // 4.1-6%  Fair      Low    Yes 4-6 years $100 - $1,000    
+		   -10,          // 4.1-6%  Fair      Low    Yes 4-6 years $1,001 - $10,000 
+		   10,           // 4.1-6%  Fair      Low    Yes 4-6 years $10,001 - $100,0 
+		   30,           // 4.1-6%  Fair      Low    Yes 4-6 years $100,001 and abo 
+		   -25,          // 4.1-6%  Fair      Low    Yes 7+ years  $100 - $1,000    
+		   -5,           // 4.1-6%  Fair      Low    Yes 7+ years  $1,001 - $10,000 
+		   15,           // 4.1-6%  Fair      Low    Yes 7+ years  $10,001 - $100,0 
+		   35,           // 4.1-6%  Fair      Low    Yes 7+ years  $100,001 and abo 
+		   0,            // 4.1-6%  Fair      Low    No  1-3 years $100 - $1,000    
+		   0,            // 4.1-6%  Fair      Low    No  1-3 years $1,001 - $10,000 
+		   0,            // 4.1-6%  Fair      Low    No  1-3 years $10,001 - $100,0 
+		   0,            // 4.1-6%  Fair      Low    No  1-3 years $100,001 and abo 
+		   0,            // 4.1-6%  Fair      Low    No  4-6 years $100 - $1,000    
+		   0,            // 4.1-6%  Fair      Low    No  4-6 years $1,001 - $10,000 
+		   0,            // 4.1-6%  Fair      Low    No  4-6 years $10,001 - $100,0 
+		   0,            // 4.1-6%  Fair      Low    No  4-6 years $100,001 and abo 
+		   0,            // 4.1-6%  Fair      Low    No  7+ years  $100 - $1,000    
+		   0,            // 4.1-6%  Fair      Low    No  7+ years  $1,001 - $10,000 
+		   0,            // 4.1-6%  Fair      Low    No  7+ years  $10,001 - $100,0 
+		   0,            // 4.1-6%  Fair      Low    No  7+ years  $100,001 and abo 
+		   -5,           // 4.1-6%  Fair      Medium Yes 1-3 years $100 - $1,000    
+		   15,           // 4.1-6%  Fair      Medium Yes 1-3 years $1,001 - $10,000 
+		   35,           // 4.1-6%  Fair      Medium Yes 1-3 years $10,001 - $100,0 
+		   55,           // 4.1-6%  Fair      Medium Yes 1-3 years $100,001 and abo 
+		   0,            // 4.1-6%  Fair      Medium Yes 4-6 years $100 - $1,000    
+		   20,           // 4.1-6%  Fair      Medium Yes 4-6 years $1,001 - $10,000 
+		   40,           // 4.1-6%  Fair      Medium Yes 4-6 years $10,001 - $100,0 
+		   60,           // 4.1-6%  Fair      Medium Yes 4-6 years $100,001 and abo 
+		   5,            // 4.1-6%  Fair      Medium Yes 7+ years  $100 - $1,000    
+		   25,           // 4.1-6%  Fair      Medium Yes 7+ years  $1,001 - $10,000 
+		   45,           // 4.1-6%  Fair      Medium Yes 7+ years  $10,001 - $100,0 
+		   65,           // 4.1-6%  Fair      Medium Yes 7+ years  $100,001 and abo 
+		   0,            // 4.1-6%  Fair      Medium No  1-3 years $100 - $1,000    
+		   0,            // 4.1-6%  Fair      Medium No  1-3 years $1,001 - $10,000 
+		   0,            // 4.1-6%  Fair      Medium No  1-3 years $10,001 - $100,0 
+		   0,            // 4.1-6%  Fair      Medium No  1-3 years $100,001 and abo 
+		   0,            // 4.1-6%  Fair      Medium No  4-6 years $100 - $1,000    
+		   0,            // 4.1-6%  Fair      Medium No  4-6 years $1,001 - $10,000 
+		   0,            // 4.1-6%  Fair      Medium No  4-6 years $10,001 - $100,0 
+		   0,            // 4.1-6%  Fair      Medium No  4-6 years $100,001 and abo 
+		   0,            // 4.1-6%  Fair      Medium No  7+ years  $100 - $1,000    
+		   0,            // 4.1-6%  Fair      Medium No  7+ years  $1,001 - $10,000 
+		   0,            // 4.1-6%  Fair      Medium No  7+ years  $10,001 - $100,0 
+		   0,            // 4.1-6%  Fair      Medium No  7+ years  $100,001 and abo 
+		   25,           // 4.1-6%  Fair      High   Yes 1-3 years $100 - $1,000    
+		   45,           // 4.1-6%  Fair      High   Yes 1-3 years $1,001 - $10,000 
+		   65,           // 4.1-6%  Fair      High   Yes 1-3 years $10,001 - $100,0 
+		   85,           // 4.1-6%  Fair      High   Yes 1-3 years $100,001 and abo 
+		   30,           // 4.1-6%  Fair      High   Yes 4-6 years $100 - $1,000    
+		   50,           // 4.1-6%  Fair      High   Yes 4-6 years $1,001 - $10,000 
+		   70,           // 4.1-6%  Fair      High   Yes 4-6 years $10,001 - $100,0 
+		   90,           // 4.1-6%  Fair      High   Yes 4-6 years $100,001 and abo 
+		   35,           // 4.1-6%  Fair      High   Yes 7+ years  $100 - $1,000    
+		   55,           // 4.1-6%  Fair      High   Yes 7+ years  $1,001 - $10,000 
+		   75,           // 4.1-6%  Fair      High   Yes 7+ years  $10,001 - $100,0 
+		   95,           // 4.1-6%  Fair      High   Yes 7+ years  $100,001 and abo 
+		   0,            // 4.1-6%  Fair      High   No  1-3 years $100 - $1,000    
+		   0,            // 4.1-6%  Fair      High   No  1-3 years $1,001 - $10,000 
+		   0,            // 4.1-6%  Fair      High   No  1-3 years $10,001 - $100,0 
+		   0,            // 4.1-6%  Fair      High   No  1-3 years $100,001 and abo 
+		   0,            // 4.1-6%  Fair      High   No  4-6 years $100 - $1,000    
+		   0,            // 4.1-6%  Fair      High   No  4-6 years $1,001 - $10,000 
+		   0,            // 4.1-6%  Fair      High   No  4-6 years $10,001 - $100,0 
+		   0,            // 4.1-6%  Fair      High   No  4-6 years $100,001 and abo 
+		   0,            // 4.1-6%  Fair      High   No  7+ years  $100 - $1,000    
+		   0,            // 4.1-6%  Fair      High   No  7+ years  $1,001 - $10,000 
+		   0,            // 4.1-6%  Fair      High   No  7+ years  $10,001 - $100,0 
+		   0,            // 4.1-6%  Fair      High   No  7+ years  $100,001 and abo 
+		   -15,          // 4.1-6%  Good      Low    Yes 1-3 years $100 - $1,000    
+		   5,            // 4.1-6%  Good      Low    Yes 1-3 years $1,001 - $10,000 
+		   25,           // 4.1-6%  Good      Low    Yes 1-3 years $10,001 - $100,0 
+		   45,           // 4.1-6%  Good      Low    Yes 1-3 years $100,001 and abo 
+		   -10,          // 4.1-6%  Good      Low    Yes 4-6 years $100 - $1,000    
+		   10,           // 4.1-6%  Good      Low    Yes 4-6 years $1,001 - $10,000 
+		   30,           // 4.1-6%  Good      Low    Yes 4-6 years $10,001 - $100,0 
+		   50,           // 4.1-6%  Good      Low    Yes 4-6 years $100,001 and abo 
+		   -5,           // 4.1-6%  Good      Low    Yes 7+ years  $100 - $1,000    
+		   15,           // 4.1-6%  Good      Low    Yes 7+ years  $1,001 - $10,000 
+		   35,           // 4.1-6%  Good      Low    Yes 7+ years  $10,001 - $100,0 
+		   55,           // 4.1-6%  Good      Low    Yes 7+ years  $100,001 and abo 
+		   0,            // 4.1-6%  Good      Low    No  1-3 years $100 - $1,000    
+		   0,            // 4.1-6%  Good      Low    No  1-3 years $1,001 - $10,000 
+		   0,            // 4.1-6%  Good      Low    No  1-3 years $10,001 - $100,0 
+		   0,            // 4.1-6%  Good      Low    No  1-3 years $100,001 and abo 
+		   0,            // 4.1-6%  Good      Low    No  4-6 years $100 - $1,000    
+		   0,            // 4.1-6%  Good      Low    No  4-6 years $1,001 - $10,000 
+		   0,            // 4.1-6%  Good      Low    No  4-6 years $10,001 - $100,0 
+		   0,            // 4.1-6%  Good      Low    No  4-6 years $100,001 and abo 
+		   0,            // 4.1-6%  Good      Low    No  7+ years  $100 - $1,000    
+		   0,            // 4.1-6%  Good      Low    No  7+ years  $1,001 - $10,000 
+		   0,            // 4.1-6%  Good      Low    No  7+ years  $10,001 - $100,0 
+		   0,            // 4.1-6%  Good      Low    No  7+ years  $100,001 and abo 
+		   15,           // 4.1-6%  Good      Medium Yes 1-3 years $100 - $1,000    
+		   35,           // 4.1-6%  Good      Medium Yes 1-3 years $1,001 - $10,000 
+		   55,           // 4.1-6%  Good      Medium Yes 1-3 years $10,001 - $100,0 
+		   75,           // 4.1-6%  Good      Medium Yes 1-3 years $100,001 and abo 
+		   20,           // 4.1-6%  Good      Medium Yes 4-6 years $100 - $1,000    
+		   40,           // 4.1-6%  Good      Medium Yes 4-6 years $1,001 - $10,000 
+		   60,           // 4.1-6%  Good      Medium Yes 4-6 years $10,001 - $100,0 
+		   80,           // 4.1-6%  Good      Medium Yes 4-6 years $100,001 and abo 
+		   25,           // 4.1-6%  Good      Medium Yes 7+ years  $100 - $1,000    
+		   45,           // 4.1-6%  Good      Medium Yes 7+ years  $1,001 - $10,000 
+		   65,           // 4.1-6%  Good      Medium Yes 7+ years  $10,001 - $100,0 
+		   85,           // 4.1-6%  Good      Medium Yes 7+ years  $100,001 and abo 
+		   0,            // 4.1-6%  Good      Medium No  1-3 years $100 - $1,000    
+		   0,            // 4.1-6%  Good      Medium No  1-3 years $1,001 - $10,000 
+		   0,            // 4.1-6%  Good      Medium No  1-3 years $10,001 - $100,0 
+		   0,            // 4.1-6%  Good      Medium No  1-3 years $100,001 and abo 
+		   0,            // 4.1-6%  Good      Medium No  4-6 years $100 - $1,000    
+		   0,            // 4.1-6%  Good      Medium No  4-6 years $1,001 - $10,000 
+		   0,            // 4.1-6%  Good      Medium No  4-6 years $10,001 - $100,0 
+		   0,            // 4.1-6%  Good      Medium No  4-6 years $100,001 and abo 
+		   0,            // 4.1-6%  Good      Medium No  7+ years  $100 - $1,000    
+		   0,            // 4.1-6%  Good      Medium No  7+ years  $1,001 - $10,000 
+		   0,            // 4.1-6%  Good      Medium No  7+ years  $10,001 - $100,0 
+		   0,            // 4.1-6%  Good      Medium No  7+ years  $100,001 and abo 
+		   45,           // 4.1-6%  Good      High   Yes 1-3 years $100 - $1,000    
+		   65,           // 4.1-6%  Good      High   Yes 1-3 years $1,001 - $10,000 
+		   85,           // 4.1-6%  Good      High   Yes 1-3 years $10,001 - $100,0 
+		   105,          // 4.1-6%  Good      High   Yes 1-3 years $100,001 and abo 
+		   50,           // 4.1-6%  Good      High   Yes 4-6 years $100 - $1,000    
+		   70,           // 4.1-6%  Good      High   Yes 4-6 years $1,001 - $10,000 
+		   90,           // 4.1-6%  Good      High   Yes 4-6 years $10,001 - $100,0 
+		   110,          // 4.1-6%  Good      High   Yes 4-6 years $100,001 and abo 
+		   55,           // 4.1-6%  Good      High   Yes 7+ years  $100 - $1,000    
+		   75,           // 4.1-6%  Good      High   Yes 7+ years  $1,001 - $10,000 
+		   95,           // 4.1-6%  Good      High   Yes 7+ years  $10,001 - $100,0 
+		   115,          // 4.1-6%  Good      High   Yes 7+ years  $100,001 and abo 
+		   0,            // 4.1-6%  Good      High   No  1-3 years $100 - $1,000    
+		   0,            // 4.1-6%  Good      High   No  1-3 years $1,001 - $10,000 
+		   0,            // 4.1-6%  Good      High   No  1-3 years $10,001 - $100,0 
+		   0,            // 4.1-6%  Good      High   No  1-3 years $100,001 and abo 
+		   0,            // 4.1-6%  Good      High   No  4-6 years $100 - $1,000    
+		   0,            // 4.1-6%  Good      High   No  4-6 years $1,001 - $10,000 
+		   0,            // 4.1-6%  Good      High   No  4-6 years $10,001 - $100,0 
+		   0,            // 4.1-6%  Good      High   No  4-6 years $100,001 and abo 
+		   0,            // 4.1-6%  Good      High   No  7+ years  $100 - $1,000    
+		   0,            // 4.1-6%  Good      High   No  7+ years  $1,001 - $10,000 
+		   0,            // 4.1-6%  Good      High   No  7+ years  $10,001 - $100,0 
+		   0,            // 4.1-6%  Good      High   No  7+ years  $100,001 and abo 
+		   -5,           // 4.1-6%  Excellent Low    Yes 1-3 years $100 - $1,000    
+		   15,           // 4.1-6%  Excellent Low    Yes 1-3 years $1,001 - $10,000 
+		   35,           // 4.1-6%  Excellent Low    Yes 1-3 years $10,001 - $100,0 
+		   55,           // 4.1-6%  Excellent Low    Yes 1-3 years $100,001 and abo 
+		   0,            // 4.1-6%  Excellent Low    Yes 4-6 years $100 - $1,000    
+		   20,           // 4.1-6%  Excellent Low    Yes 4-6 years $1,001 - $10,000 
+		   40,           // 4.1-6%  Excellent Low    Yes 4-6 years $10,001 - $100,0 
+		   60,           // 4.1-6%  Excellent Low    Yes 4-6 years $100,001 and abo 
+		   5,            // 4.1-6%  Excellent Low    Yes 7+ years  $100 - $1,000    
+		   25,           // 4.1-6%  Excellent Low    Yes 7+ years  $1,001 - $10,000 
+		   45,           // 4.1-6%  Excellent Low    Yes 7+ years  $10,001 - $100,0 
+		   65,           // 4.1-6%  Excellent Low    Yes 7+ years  $100,001 and abo 
+		   0,            // 4.1-6%  Excellent Low    No  1-3 years $100 - $1,000    
+		   0,            // 4.1-6%  Excellent Low    No  1-3 years $1,001 - $10,000 
+		   0,            // 4.1-6%  Excellent Low    No  1-3 years $10,001 - $100,0 
+		   0,            // 4.1-6%  Excellent Low    No  1-3 years $100,001 and abo 
+		   0,            // 4.1-6%  Excellent Low    No  4-6 years $100 - $1,000    
+		   0,            // 4.1-6%  Excellent Low    No  4-6 years $1,001 - $10,000 
+		   0,            // 4.1-6%  Excellent Low    No  4-6 years $10,001 - $100,0 
+		   0,            // 4.1-6%  Excellent Low    No  4-6 years $100,001 and abo 
+		   0,            // 4.1-6%  Excellent Low    No  7+ years  $100 - $1,000    
+		   0,            // 4.1-6%  Excellent Low    No  7+ years  $1,001 - $10,000 
+		   0,            // 4.1-6%  Excellent Low    No  7+ years  $10,001 - $100,0 
+		   0,            // 4.1-6%  Excellent Low    No  7+ years  $100,001 and abo 
+		   25,           // 4.1-6%  Excellent Medium Yes 1-3 years $100 - $1,000    
+		   45,           // 4.1-6%  Excellent Medium Yes 1-3 years $1,001 - $10,000 
+		   65,           // 4.1-6%  Excellent Medium Yes 1-3 years $10,001 - $100,0 
+		   85,           // 4.1-6%  Excellent Medium Yes 1-3 years $100,001 and abo 
+		   30,           // 4.1-6%  Excellent Medium Yes 4-6 years $100 - $1,000    
+		   50,           // 4.1-6%  Excellent Medium Yes 4-6 years $1,001 - $10,000 
+		   70,           // 4.1-6%  Excellent Medium Yes 4-6 years $10,001 - $100,0 
+		   90,           // 4.1-6%  Excellent Medium Yes 4-6 years $100,001 and abo 
+		   35,           // 4.1-6%  Excellent Medium Yes 7+ years  $100 - $1,000    
+		   55,           // 4.1-6%  Excellent Medium Yes 7+ years  $1,001 - $10,000 
+		   75,           // 4.1-6%  Excellent Medium Yes 7+ years  $10,001 - $100,0 
+		   95,           // 4.1-6%  Excellent Medium Yes 7+ years  $100,001 and abo 
+		   0,            // 4.1-6%  Excellent Medium No  1-3 years $100 - $1,000    
+		   0,            // 4.1-6%  Excellent Medium No  1-3 years $1,001 - $10,000 
+		   0,            // 4.1-6%  Excellent Medium No  1-3 years $10,001 - $100,0 
+		   0,            // 4.1-6%  Excellent Medium No  1-3 years $100,001 and abo 
+		   0,            // 4.1-6%  Excellent Medium No  4-6 years $100 - $1,000    
+		   0,            // 4.1-6%  Excellent Medium No  4-6 years $1,001 - $10,000 
+		   0,            // 4.1-6%  Excellent Medium No  4-6 years $10,001 - $100,0 
+		   0,            // 4.1-6%  Excellent Medium No  4-6 years $100,001 and abo 
+		   0,            // 4.1-6%  Excellent Medium No  7+ years  $100 - $1,000    
+		   0,            // 4.1-6%  Excellent Medium No  7+ years  $1,001 - $10,000 
+		   0,            // 4.1-6%  Excellent Medium No  7+ years  $10,001 - $100,0 
+		   0,            // 4.1-6%  Excellent Medium No  7+ years  $100,001 and abo 
+		   55,           // 4.1-6%  Excellent High   Yes 1-3 years $100 - $1,000    
+		   75,           // 4.1-6%  Excellent High   Yes 1-3 years $1,001 - $10,000 
+		   95,           // 4.1-6%  Excellent High   Yes 1-3 years $10,001 - $100,0 
+		   115,          // 4.1-6%  Excellent High   Yes 1-3 years $100,001 and abo 
+		   60,           // 4.1-6%  Excellent High   Yes 4-6 years $100 - $1,000    
+		   80,           // 4.1-6%  Excellent High   Yes 4-6 years $1,001 - $10,000 
+		   100,          // 4.1-6%  Excellent High   Yes 4-6 years $10,001 - $100,0 
+		   120,          // 4.1-6%  Excellent High   Yes 4-6 years $100,001 and abo 
+		   65,           // 4.1-6%  Excellent High   Yes 7+ years  $100 - $1,000    
+		   85,           // 4.1-6%  Excellent High   Yes 7+ years  $1,001 - $10,000 
+		   105,          // 4.1-6%  Excellent High   Yes 7+ years  $10,001 - $100,0 
+		   125,          // 4.1-6%  Excellent High   Yes 7+ years  $100,001 and abo 
+		   0,            // 4.1-6%  Excellent High   No  1-3 years $100 - $1,000    
+		   0,            // 4.1-6%  Excellent High   No  1-3 years $1,001 - $10,000 
+		   0,            // 4.1-6%  Excellent High   No  1-3 years $10,001 - $100,0 
+		   0,            // 4.1-6%  Excellent High   No  1-3 years $100,001 and abo 
+		   0,            // 4.1-6%  Excellent High   No  4-6 years $100 - $1,000    
+		   0,            // 4.1-6%  Excellent High   No  4-6 years $1,001 - $10,000 
+		   0,            // 4.1-6%  Excellent High   No  4-6 years $10,001 - $100,0 
+		   0,            // 4.1-6%  Excellent High   No  4-6 years $100,001 and abo 
+		   0,            // 4.1-6%  Excellent High   No  7+ years  $100 - $1,000    
+		   0,            // 4.1-6%  Excellent High   No  7+ years  $1,001 - $10,000 
+		   0,            // 4.1-6%  Excellent High   No  7+ years  $10,001 - $100,0 
+		   0,            // 4.1-6%  Excellent High   No  7+ years  $100,001 and abo 
+		   -85,          // 6.1-10% Poor      Low    Yes 1-3 years $100 - $1,000    
+		   -65,          // 6.1-10% Poor      Low    Yes 1-3 years $1,001 - $10,000 
+		   -45,          // 6.1-10% Poor      Low    Yes 1-3 years $10,001 - $100,0 
+		   -25,          // 6.1-10% Poor      Low    Yes 1-3 years $100,001 and abo 
+		   -80,          // 6.1-10% Poor      Low    Yes 4-6 years $100 - $1,000    
+		   -60,          // 6.1-10% Poor      Low    Yes 4-6 years $1,001 - $10,000 
+		   -40,          // 6.1-10% Poor      Low    Yes 4-6 years $10,001 - $100,0 
+		   -20,          // 6.1-10% Poor      Low    Yes 4-6 years $100,001 and abo 
+		   -75,          // 6.1-10% Poor      Low    Yes 7+ years  $100 - $1,000    
+		   -55,          // 6.1-10% Poor      Low    Yes 7+ years  $1,001 - $10,000 
+		   -35,          // 6.1-10% Poor      Low    Yes 7+ years  $10,001 - $100,0 
+		   -15,          // 6.1-10% Poor      Low    Yes 7+ years  $100,001 and abo 
+		   0,            // 6.1-10% Poor      Low    No  1-3 years $100 - $1,000    
+		   0,            // 6.1-10% Poor      Low    No  1-3 years $1,001 - $10,000 
+		   0,            // 6.1-10% Poor      Low    No  1-3 years $10,001 - $100,0 
+		   0,            // 6.1-10% Poor      Low    No  1-3 years $100,001 and abo 
+		   0,            // 6.1-10% Poor      Low    No  4-6 years $100 - $1,000    
+		   0,            // 6.1-10% Poor      Low    No  4-6 years $1,001 - $10,000 
+		   0,            // 6.1-10% Poor      Low    No  4-6 years $10,001 - $100,0 
+		   0,            // 6.1-10% Poor      Low    No  4-6 years $100,001 and abo 
+		   0,            // 6.1-10% Poor      Low    No  7+ years  $100 - $1,000    
+		   0,            // 6.1-10% Poor      Low    No  7+ years  $1,001 - $10,000 
+		   0,            // 6.1-10% Poor      Low    No  7+ years  $10,001 - $100,0 
+		   0,            // 6.1-10% Poor      Low    No  7+ years  $100,001 and abo 
+		   -25,          // 6.1-10% Poor      Medium Yes 1-3 years $100 - $1,000    
+		   -5,           // 6.1-10% Poor      Medium Yes 1-3 years $1,001 - $10,000 
+		   15,           // 6.1-10% Poor      Medium Yes 1-3 years $10,001 - $100,0 
+		   35,           // 6.1-10% Poor      Medium Yes 1-3 years $100,001 and abo 
+		   -20,          // 6.1-10% Poor      Medium Yes 4-6 years $100 - $1,000    
+		   0,            // 6.1-10% Poor      Medium Yes 4-6 years $1,001 - $10,000 
+		   20,           // 6.1-10% Poor      Medium Yes 4-6 years $10,001 - $100,0 
+		   40,           // 6.1-10% Poor      Medium Yes 4-6 years $100,001 and abo 
+		   -15,          // 6.1-10% Poor      Medium Yes 7+ years  $100 - $1,000    
+		   5,            // 6.1-10% Poor      Medium Yes 7+ years  $1,001 - $10,000 
+		   25,           // 6.1-10% Poor      Medium Yes 7+ years  $10,001 - $100,0 
+		   45,           // 6.1-10% Poor      Medium Yes 7+ years  $100,001 and abo 
+		   0,            // 6.1-10% Poor      Medium No  1-3 years $100 - $1,000    
+		   0,            // 6.1-10% Poor      Medium No  1-3 years $1,001 - $10,000 
+		   0,            // 6.1-10% Poor      Medium No  1-3 years $10,001 - $100,0 
+		   0,            // 6.1-10% Poor      Medium No  1-3 years $100,001 and abo 
+		   0,            // 6.1-10% Poor      Medium No  4-6 years $100 - $1,000    
+		   0,            // 6.1-10% Poor      Medium No  4-6 years $1,001 - $10,000 
+		   0,            // 6.1-10% Poor      Medium No  4-6 years $10,001 - $100,0 
+		   0,            // 6.1-10% Poor      Medium No  4-6 years $100,001 and abo 
+		   0,            // 6.1-10% Poor      Medium No  7+ years  $100 - $1,000    
+		   0,            // 6.1-10% Poor      Medium No  7+ years  $1,001 - $10,000 
+		   0,            // 6.1-10% Poor      Medium No  7+ years  $10,001 - $100,0 
+		   0,            // 6.1-10% Poor      Medium No  7+ years  $100,001 and abo 
+		   35,           // 6.1-10% Poor      High   Yes 1-3 years $100 - $1,000    
+		   55,           // 6.1-10% Poor      High   Yes 1-3 years $1,001 - $10,000 
+		   75,           // 6.1-10% Poor      High   Yes 1-3 years $10,001 - $100,0 
+		   95,           // 6.1-10% Poor      High   Yes 1-3 years $100,001 and abo 
+		   40,           // 6.1-10% Poor      High   Yes 4-6 years $100 - $1,000    
+		   60,           // 6.1-10% Poor      High   Yes 4-6 years $1,001 - $10,000 
+		   80,           // 6.1-10% Poor      High   Yes 4-6 years $10,001 - $100,0 
+		   100,          // 6.1-10% Poor      High   Yes 4-6 years $100,001 and abo 
+		   45,           // 6.1-10% Poor      High   Yes 7+ years  $100 - $1,000    
+		   65,           // 6.1-10% Poor      High   Yes 7+ years  $1,001 - $10,000 
+		   85,           // 6.1-10% Poor      High   Yes 7+ years  $10,001 - $100,0 
+		   105,          // 6.1-10% Poor      High   Yes 7+ years  $100,001 and abo 
+		   0,            // 6.1-10% Poor      High   No  1-3 years $100 - $1,000    
+		   0,            // 6.1-10% Poor      High   No  1-3 years $1,001 - $10,000 
+		   0,            // 6.1-10% Poor      High   No  1-3 years $10,001 - $100,0 
+		   0,            // 6.1-10% Poor      High   No  1-3 years $100,001 and abo 
+		   0,            // 6.1-10% Poor      High   No  4-6 years $100 - $1,000    
+		   0,            // 6.1-10% Poor      High   No  4-6 years $1,001 - $10,000 
+		   0,            // 6.1-10% Poor      High   No  4-6 years $10,001 - $100,0 
+		   0,            // 6.1-10% Poor      High   No  4-6 years $100,001 and abo 
+		   0,            // 6.1-10% Poor      High   No  7+ years  $100 - $1,000    
+		   0,            // 6.1-10% Poor      High   No  7+ years  $1,001 - $10,000 
+		   0,            // 6.1-10% Poor      High   No  7+ years  $10,001 - $100,0 
+		   0,            // 6.1-10% Poor      High   No  7+ years  $100,001 and abo 
+		   -65,          // 6.1-10% Fair      Low    Yes 1-3 years $100 - $1,000    
+		   -45,          // 6.1-10% Fair      Low    Yes 1-3 years $1,001 - $10,000 
+		   -25,          // 6.1-10% Fair      Low    Yes 1-3 years $10,001 - $100,0 
+		   -5,           // 6.1-10% Fair      Low    Yes 1-3 years $100,001 and abo 
+		   -60,          // 6.1-10% Fair      Low    Yes 4-6 years $100 - $1,000    
+		   -40,          // 6.1-10% Fair      Low    Yes 4-6 years $1,001 - $10,000 
+		   -20,          // 6.1-10% Fair      Low    Yes 4-6 years $10,001 - $100,0 
+		   0,            // 6.1-10% Fair      Low    Yes 4-6 years $100,001 and abo 
+		   -55,          // 6.1-10% Fair      Low    Yes 7+ years  $100 - $1,000    
+		   -35,          // 6.1-10% Fair      Low    Yes 7+ years  $1,001 - $10,000 
+		   -15,          // 6.1-10% Fair      Low    Yes 7+ years  $10,001 - $100,0 
+		   5,            // 6.1-10% Fair      Low    Yes 7+ years  $100,001 and abo 
+		   0,            // 6.1-10% Fair      Low    No  1-3 years $100 - $1,000    
+		   0,            // 6.1-10% Fair      Low    No  1-3 years $1,001 - $10,000 
+		   0,            // 6.1-10% Fair      Low    No  1-3 years $10,001 - $100,0 
+		   0,            // 6.1-10% Fair      Low    No  1-3 years $100,001 and abo 
+		   0,            // 6.1-10% Fair      Low    No  4-6 years $100 - $1,000    
+		   0,            // 6.1-10% Fair      Low    No  4-6 years $1,001 - $10,000 
+		   0,            // 6.1-10% Fair      Low    No  4-6 years $10,001 - $100,0 
+		   0,            // 6.1-10% Fair      Low    No  4-6 years $100,001 and abo 
+		   0,            // 6.1-10% Fair      Low    No  7+ years  $100 - $1,000    
+		   0,            // 6.1-10% Fair      Low    No  7+ years  $1,001 - $10,000 
+		   0,            // 6.1-10% Fair      Low    No  7+ years  $10,001 - $100,0 
+		   0,            // 6.1-10% Fair      Low    No  7+ years  $100,001 and abo 
+		   -5,           // 6.1-10% Fair      Medium Yes 1-3 years $100 - $1,000    
+		   15,           // 6.1-10% Fair      Medium Yes 1-3 years $1,001 - $10,000 
+		   35,           // 6.1-10% Fair      Medium Yes 1-3 years $10,001 - $100,0 
+		   55,           // 6.1-10% Fair      Medium Yes 1-3 years $100,001 and abo 
+		   0,            // 6.1-10% Fair      Medium Yes 4-6 years $100 - $1,000    
+		   20,           // 6.1-10% Fair      Medium Yes 4-6 years $1,001 - $10,000 
+		   40,           // 6.1-10% Fair      Medium Yes 4-6 years $10,001 - $100,0 
+		   60,           // 6.1-10% Fair      Medium Yes 4-6 years $100,001 and abo 
+		   5,            // 6.1-10% Fair      Medium Yes 7+ years  $100 - $1,000    
+		   25,           // 6.1-10% Fair      Medium Yes 7+ years  $1,001 - $10,000 
+		   45,           // 6.1-10% Fair      Medium Yes 7+ years  $10,001 - $100,0 
+		   65,           // 6.1-10% Fair      Medium Yes 7+ years  $100,001 and abo 
+		   0,            // 6.1-10% Fair      Medium No  1-3 years $100 - $1,000    
+		   0,            // 6.1-10% Fair      Medium No  1-3 years $1,001 - $10,000 
+		   0,            // 6.1-10% Fair      Medium No  1-3 years $10,001 - $100,0 
+		   0,            // 6.1-10% Fair      Medium No  1-3 years $100,001 and abo 
+		   0,            // 6.1-10% Fair      Medium No  4-6 years $100 - $1,000    
+		   0,            // 6.1-10% Fair      Medium No  4-6 years $1,001 - $10,000 
+		   0,            // 6.1-10% Fair      Medium No  4-6 years $10,001 - $100,0 
+		   0,            // 6.1-10% Fair      Medium No  4-6 years $100,001 and abo 
+		   0,            // 6.1-10% Fair      Medium No  7+ years  $100 - $1,000    
+		   0,            // 6.1-10% Fair      Medium No  7+ years  $1,001 - $10,000 
+		   0,            // 6.1-10% Fair      Medium No  7+ years  $10,001 - $100,0 
+		   0,            // 6.1-10% Fair      Medium No  7+ years  $100,001 and abo 
+		   55,           // 6.1-10% Fair      High   Yes 1-3 years $100 - $1,000    
+		   75,           // 6.1-10% Fair      High   Yes 1-3 years $1,001 - $10,000 
+		   95,           // 6.1-10% Fair      High   Yes 1-3 years $10,001 - $100,0 
+		   115,          // 6.1-10% Fair      High   Yes 1-3 years $100,001 and abo 
+		   60,           // 6.1-10% Fair      High   Yes 4-6 years $100 - $1,000    
+		   80,           // 6.1-10% Fair      High   Yes 4-6 years $1,001 - $10,000 
+		   100,          // 6.1-10% Fair      High   Yes 4-6 years $10,001 - $100,0 
+		   120,          // 6.1-10% Fair      High   Yes 4-6 years $100,001 and abo 
+		   65,           // 6.1-10% Fair      High   Yes 7+ years  $100 - $1,000    
+		   85,           // 6.1-10% Fair      High   Yes 7+ years  $1,001 - $10,000 
+		   105,          // 6.1-10% Fair      High   Yes 7+ years  $10,001 - $100,0 
+		   125,          // 6.1-10% Fair      High   Yes 7+ years  $100,001 and abo 
+		   0,            // 6.1-10% Fair      High   No  1-3 years $100 - $1,000    
+		   0,            // 6.1-10% Fair      High   No  1-3 years $1,001 - $10,000 
+		   0,            // 6.1-10% Fair      High   No  1-3 years $10,001 - $100,0 
+		   0,            // 6.1-10% Fair      High   No  1-3 years $100,001 and abo 
+		   0,            // 6.1-10% Fair      High   No  4-6 years $100 - $1,000    
+		   0,            // 6.1-10% Fair      High   No  4-6 years $1,001 - $10,000 
+		   0,            // 6.1-10% Fair      High   No  4-6 years $10,001 - $100,0 
+		   0,            // 6.1-10% Fair      High   No  4-6 years $100,001 and abo 
+		   0,            // 6.1-10% Fair      High   No  7+ years  $100 - $1,000    
+		   0,            // 6.1-10% Fair      High   No  7+ years  $1,001 - $10,000 
+		   0,            // 6.1-10% Fair      High   No  7+ years  $10,001 - $100,0 
+		   0,            // 6.1-10% Fair      High   No  7+ years  $100,001 and abo 
+		   -45,          // 6.1-10% Good      Low    Yes 1-3 years $100 - $1,000    
+		   -25,          // 6.1-10% Good      Low    Yes 1-3 years $1,001 - $10,000 
+		   -5,           // 6.1-10% Good      Low    Yes 1-3 years $10,001 - $100,0 
+		   15,           // 6.1-10% Good      Low    Yes 1-3 years $100,001 and abo 
+		   -40,          // 6.1-10% Good      Low    Yes 4-6 years $100 - $1,000    
+		   -20,          // 6.1-10% Good      Low    Yes 4-6 years $1,001 - $10,000 
+		   0,            // 6.1-10% Good      Low    Yes 4-6 years $10,001 - $100,0 
+		   20,           // 6.1-10% Good      Low    Yes 4-6 years $100,001 and abo 
+		   -35,          // 6.1-10% Good      Low    Yes 7+ years  $100 - $1,000    
+		   -15,          // 6.1-10% Good      Low    Yes 7+ years  $1,001 - $10,000 
+		   5,            // 6.1-10% Good      Low    Yes 7+ years  $10,001 - $100,0 
+		   25,           // 6.1-10% Good      Low    Yes 7+ years  $100,001 and abo 
+		   0,            // 6.1-10% Good      Low    No  1-3 years $100 - $1,000    
+		   0,            // 6.1-10% Good      Low    No  1-3 years $1,001 - $10,000 
+		   0,            // 6.1-10% Good      Low    No  1-3 years $10,001 - $100,0 
+		   0,            // 6.1-10% Good      Low    No  1-3 years $100,001 and abo 
+		   0,            // 6.1-10% Good      Low    No  4-6 years $100 - $1,000    
+		   0,            // 6.1-10% Good      Low    No  4-6 years $1,001 - $10,000 
+		   0,            // 6.1-10% Good      Low    No  4-6 years $10,001 - $100,0 
+		   0,            // 6.1-10% Good      Low    No  4-6 years $100,001 and abo 
+		   0,            // 6.1-10% Good      Low    No  7+ years  $100 - $1,000    
+		   0,            // 6.1-10% Good      Low    No  7+ years  $1,001 - $10,000 
+		   0,            // 6.1-10% Good      Low    No  7+ years  $10,001 - $100,0 
+		   0,            // 6.1-10% Good      Low    No  7+ years  $100,001 and abo 
+		   15,           // 6.1-10% Good      Medium Yes 1-3 years $100 - $1,000    
+		   35,           // 6.1-10% Good      Medium Yes 1-3 years $1,001 - $10,000 
+		   55,           // 6.1-10% Good      Medium Yes 1-3 years $10,001 - $100,0 
+		   75,           // 6.1-10% Good      Medium Yes 1-3 years $100,001 and abo 
+		   20,           // 6.1-10% Good      Medium Yes 4-6 years $100 - $1,000    
+		   40,           // 6.1-10% Good      Medium Yes 4-6 years $1,001 - $10,000 
+		   60,           // 6.1-10% Good      Medium Yes 4-6 years $10,001 - $100,0 
+		   80,           // 6.1-10% Good      Medium Yes 4-6 years $100,001 and abo 
+		   25,           // 6.1-10% Good      Medium Yes 7+ years  $100 - $1,000    
+		   45,           // 6.1-10% Good      Medium Yes 7+ years  $1,001 - $10,000 
+		   65,           // 6.1-10% Good      Medium Yes 7+ years  $10,001 - $100,0 
+		   85,           // 6.1-10% Good      Medium Yes 7+ years  $100,001 and abo 
+		   0,            // 6.1-10% Good      Medium No  1-3 years $100 - $1,000    
+		   0,            // 6.1-10% Good      Medium No  1-3 years $1,001 - $10,000 
+		   0,            // 6.1-10% Good      Medium No  1-3 years $10,001 - $100,0 
+		   0,            // 6.1-10% Good      Medium No  1-3 years $100,001 and abo 
+		   0,            // 6.1-10% Good      Medium No  4-6 years $100 - $1,000    
+		   0,            // 6.1-10% Good      Medium No  4-6 years $1,001 - $10,000 
+		   0,            // 6.1-10% Good      Medium No  4-6 years $10,001 - $100,0 
+		   0,            // 6.1-10% Good      Medium No  4-6 years $100,001 and abo 
+		   0,            // 6.1-10% Good      Medium No  7+ years  $100 - $1,000    
+		   0,            // 6.1-10% Good      Medium No  7+ years  $1,001 - $10,000 
+		   0,            // 6.1-10% Good      Medium No  7+ years  $10,001 - $100,0 
+		   0,            // 6.1-10% Good      Medium No  7+ years  $100,001 and abo 
+		   75,           // 6.1-10% Good      High   Yes 1-3 years $100 - $1,000    
+		   95,           // 6.1-10% Good      High   Yes 1-3 years $1,001 - $10,000 
+		   115,          // 6.1-10% Good      High   Yes 1-3 years $10,001 - $100,0 
+		   135,          // 6.1-10% Good      High   Yes 1-3 years $100,001 and abo 
+		   80,           // 6.1-10% Good      High   Yes 4-6 years $100 - $1,000    
+		   100,          // 6.1-10% Good      High   Yes 4-6 years $1,001 - $10,000 
+		   120,          // 6.1-10% Good      High   Yes 4-6 years $10,001 - $100,0 
+		   140,          // 6.1-10% Good      High   Yes 4-6 years $100,001 and abo 
+		   85,           // 6.1-10% Good      High   Yes 7+ years  $100 - $1,000    
+		   105,          // 6.1-10% Good      High   Yes 7+ years  $1,001 - $10,000 
+		   125,          // 6.1-10% Good      High   Yes 7+ years  $10,001 - $100,0 
+		   145,          // 6.1-10% Good      High   Yes 7+ years  $100,001 and abo 
+		   0,            // 6.1-10% Good      High   No  1-3 years $100 - $1,000    
+		   0,            // 6.1-10% Good      High   No  1-3 years $1,001 - $10,000 
+		   0,            // 6.1-10% Good      High   No  1-3 years $10,001 - $100,0 
+		   0,            // 6.1-10% Good      High   No  1-3 years $100,001 and abo 
+		   0,            // 6.1-10% Good      High   No  4-6 years $100 - $1,000    
+		   0,            // 6.1-10% Good      High   No  4-6 years $1,001 - $10,000 
+		   0,            // 6.1-10% Good      High   No  4-6 years $10,001 - $100,0 
+		   0,            // 6.1-10% Good      High   No  4-6 years $100,001 and abo 
+		   0,            // 6.1-10% Good      High   No  7+ years  $100 - $1,000    
+		   0,            // 6.1-10% Good      High   No  7+ years  $1,001 - $10,000 
+		   0,            // 6.1-10% Good      High   No  7+ years  $10,001 - $100,0 
+		   0,            // 6.1-10% Good      High   No  7+ years  $100,001 and abo 
+		   -35,          // 6.1-10% Excellent Low    Yes 1-3 years $100 - $1,000    
+		   -15,          // 6.1-10% Excellent Low    Yes 1-3 years $1,001 - $10,000 
+		   5,            // 6.1-10% Excellent Low    Yes 1-3 years $10,001 - $100,0 
+		   25,           // 6.1-10% Excellent Low    Yes 1-3 years $100,001 and abo 
+		   -30,          // 6.1-10% Excellent Low    Yes 4-6 years $100 - $1,000    
+		   -10,          // 6.1-10% Excellent Low    Yes 4-6 years $1,001 - $10,000 
+		   10,           // 6.1-10% Excellent Low    Yes 4-6 years $10,001 - $100,0 
+		   30,           // 6.1-10% Excellent Low    Yes 4-6 years $100,001 and abo 
+		   -25,          // 6.1-10% Excellent Low    Yes 7+ years  $100 - $1,000    
+		   -5,           // 6.1-10% Excellent Low    Yes 7+ years  $1,001 - $10,000 
+		   15,           // 6.1-10% Excellent Low    Yes 7+ years  $10,001 - $100,0 
+		   35,           // 6.1-10% Excellent Low    Yes 7+ years  $100,001 and abo 
+		   0,            // 6.1-10% Excellent Low    No  1-3 years $100 - $1,000    
+		   0,            // 6.1-10% Excellent Low    No  1-3 years $1,001 - $10,000 
+		   0,            // 6.1-10% Excellent Low    No  1-3 years $10,001 - $100,0 
+		   0,            // 6.1-10% Excellent Low    No  1-3 years $100,001 and abo 
+		   0,            // 6.1-10% Excellent Low    No  4-6 years $100 - $1,000    
+		   0,            // 6.1-10% Excellent Low    No  4-6 years $1,001 - $10,000 
+		   0,            // 6.1-10% Excellent Low    No  4-6 years $10,001 - $100,0 
+		   0,            // 6.1-10% Excellent Low    No  4-6 years $100,001 and abo 
+		   0,            // 6.1-10% Excellent Low    No  7+ years  $100 - $1,000    
+		   0,            // 6.1-10% Excellent Low    No  7+ years  $1,001 - $10,000 
+		   0,            // 6.1-10% Excellent Low    No  7+ years  $10,001 - $100,0 
+		   0,            // 6.1-10% Excellent Low    No  7+ years  $100,001 and abo 
+		   25,           // 6.1-10% Excellent Medium Yes 1-3 years $100 - $1,000    
+		   45,           // 6.1-10% Excellent Medium Yes 1-3 years $1,001 - $10,000 
+		   65,           // 6.1-10% Excellent Medium Yes 1-3 years $10,001 - $100,0 
+		   85,           // 6.1-10% Excellent Medium Yes 1-3 years $100,001 and abo 
+		   30,           // 6.1-10% Excellent Medium Yes 4-6 years $100 - $1,000    
+		   50,           // 6.1-10% Excellent Medium Yes 4-6 years $1,001 - $10,000 
+		   70,           // 6.1-10% Excellent Medium Yes 4-6 years $10,001 - $100,0 
+		   90,           // 6.1-10% Excellent Medium Yes 4-6 years $100,001 and abo 
+		   35,           // 6.1-10% Excellent Medium Yes 7+ years  $100 - $1,000    
+		   55,           // 6.1-10% Excellent Medium Yes 7+ years  $1,001 - $10,000 
+		   75,           // 6.1-10% Excellent Medium Yes 7+ years  $10,001 - $100,0 
+		   95,           // 6.1-10% Excellent Medium Yes 7+ years  $100,001 and abo 
+		   0,            // 6.1-10% Excellent Medium No  1-3 years $100 - $1,000    
+		   0,            // 6.1-10% Excellent Medium No  1-3 years $1,001 - $10,000 
+		   0,            // 6.1-10% Excellent Medium No  1-3 years $10,001 - $100,0 
+		   0,            // 6.1-10% Excellent Medium No  1-3 years $100,001 and abo 
+		   0,            // 6.1-10% Excellent Medium No  4-6 years $100 - $1,000    
+		   0,            // 6.1-10% Excellent Medium No  4-6 years $1,001 - $10,000 
+		   0,            // 6.1-10% Excellent Medium No  4-6 years $10,001 - $100,0 
+		   0,            // 6.1-10% Excellent Medium No  4-6 years $100,001 and abo 
+		   0,            // 6.1-10% Excellent Medium No  7+ years  $100 - $1,000    
+		   0,            // 6.1-10% Excellent Medium No  7+ years  $1,001 - $10,000 
+		   0,            // 6.1-10% Excellent Medium No  7+ years  $10,001 - $100,0 
+		   0,            // 6.1-10% Excellent Medium No  7+ years  $100,001 and abo 
+		   85,           // 6.1-10% Excellent High   Yes 1-3 years $100 - $1,000    
+		   105,          // 6.1-10% Excellent High   Yes 1-3 years $1,001 - $10,000 
+		   125,          // 6.1-10% Excellent High   Yes 1-3 years $10,001 - $100,0 
+		   145,          // 6.1-10% Excellent High   Yes 1-3 years $100,001 and abo 
+		   90,           // 6.1-10% Excellent High   Yes 4-6 years $100 - $1,000    
+		   110,          // 6.1-10% Excellent High   Yes 4-6 years $1,001 - $10,000 
+		   130,          // 6.1-10% Excellent High   Yes 4-6 years $10,001 - $100,0 
+		   150,          // 6.1-10% Excellent High   Yes 4-6 years $100,001 and abo 
+		   95,           // 6.1-10% Excellent High   Yes 7+ years  $100 - $1,000    
+		   115,          // 6.1-10% Excellent High   Yes 7+ years  $1,001 - $10,000 
+		   135,          // 6.1-10% Excellent High   Yes 7+ years  $10,001 - $100,0 
+		   155,          // 6.1-10% Excellent High   Yes 7+ years  $100,001 and abo 
+		   0,            // 6.1-10% Excellent High   No  1-3 years $100 - $1,000    
+		   0,            // 6.1-10% Excellent High   No  1-3 years $1,001 - $10,000 
+		   0,            // 6.1-10% Excellent High   No  1-3 years $10,001 - $100,0 
+		   0,            // 6.1-10% Excellent High   No  1-3 years $100,001 and abo 
+		   0,            // 6.1-10% Excellent High   No  4-6 years $100 - $1,000    
+		   0,            // 6.1-10% Excellent High   No  4-6 years $1,001 - $10,000 
+		   0,            // 6.1-10% Excellent High   No  4-6 years $10,001 - $100,0 
+		   0,            // 6.1-10% Excellent High   No  4-6 years $100,001 and abo 
+		   0,            // 6.1-10% Excellent High   No  7+ years  $100 - $1,000    
+		   0,            // 6.1-10% Excellent High   No  7+ years  $1,001 - $10,000 
+		   0,            // 6.1-10% Excellent High   No  7+ years  $10,001 - $100,0 
+		   0);           // 6.1-10% Excellent High   No  7+ years  $100,001 and abo ;
+	title = "Expected Profit";
+	whenchanged = 1697797439;
+	visual V1 {
+		center = (1656, 684);
+		height = 29;
+		};
+	};
+ElimOrder = (TSLA, AA, NA, HI, IA, RA, TP, D, MLP, CB, TD, LB, AWB, B, CU, PH, AO, CHL, NC, CM, LA, IR, MR, LD, A, DTI, I, CS);
+};
